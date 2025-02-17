@@ -1,0 +1,27 @@
+{
+  "realm": "example",
+  "enabled": true,
+  "clientScopes": [ {
+    "name": "test1",
+    "protocol": "openid-connect"
+  }, {
+    "name": "test2",
+    "protocol": "openid-connect"
+  } ],
+  "clients": [ {
+    "clientId": "app",
+    "enabled": true,
+    "clientAuthenticatorType": "client-secret",
+    "secret": "$(env:APP_CLIENT_SECRET)",
+    "serviceAccountsEnabled": true,
+    "optionalClientScopes": [
+      "test1",
+      "test2"
+    ]
+  }, {
+    "clientId": "api",
+    "enabled": true,
+    "clientAuthenticatorType": "client-secret",
+    "secret": "$(env:API_CLIENT_SECRET)"
+  } ]
+}

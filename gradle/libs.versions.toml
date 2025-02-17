@@ -1,0 +1,38 @@
+# Try to maintain entries sorted alphabetically inside each "group".
+[versions]
+errorprone = "2.36.0"
+jetty = "12.0.16"
+junitJupiter = "5.11.4"
+nullaway = "0.12.3"
+
+# Versions used in build-logic
+googleJavaFormat = "1.25.2"
+ktlint = "1.5.0"
+
+[libraries]
+caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.0"
+errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
+errorprone-typeAnnotations = { module = "com.google.errorprone:error_prone_type_annotations", version.ref = "errorprone" }
+jakarta-servletApi = "jakarta.servlet:jakarta.servlet-api:6.0.0"
+jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version.ref = "jetty" }
+jetty-ee10-bom = { module = "org.eclipse.jetty.ee10:jetty-ee10-bom", version.ref = "jetty" }
+jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet" }
+jspecify = "org.jspecify:jspecify:1.0.0"
+nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.22.2"
+nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
+truth = "com.google.truth:truth:1.4.4"
+
+# Used in bundle below
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+
+[bundles]
+# Used in build-logic
+errorprone = [ "errorprone-core", "nullaway" ]
+
+[plugins]
+errorprone = "net.ltgt.errorprone:4.1.0"
+jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.1.2"
+nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
+nullaway = "net.ltgt.nullaway:2.2.0"
+spotless = "com.diffplug.spotless:7.0.2"
