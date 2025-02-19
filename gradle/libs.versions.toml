@@ -13,6 +13,8 @@ ktlint = "1.5.0"
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.0"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
 errorprone-typeAnnotations = { module = "com.google.errorprone:error_prone_type_annotations", version.ref = "errorprone" }
+jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
+jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
 jakarta-servletApi = "jakarta.servlet:jakarta.servlet-api:6.0.0"
 jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version.ref = "jetty" }
 jetty-ee10-bom = { module = "org.eclipse.jetty.ee10:jetty-ee10-bom", version.ref = "jetty" }
@@ -21,6 +23,8 @@ jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
 nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.22.2"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
+resteasy-bom = "org.jboss.resteasy:resteasy-bom:6.2.11.Final"
+resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
 truth = "com.google.truth:truth:1.4.4"
 
 # Used in bundle below

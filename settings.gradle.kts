@@ -21,5 +21,6 @@ fun include(
 include(":oauth-bom", "platform")
 include(":oauth-common", "common")
 include(":oauth-servlets", "lib")
+include(":oauth-rs", "rs")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

@@ -1,14 +1,16 @@
 # oauth-servlets
 
-OAuth-Servlets is a library of servlets and filters using the [Nimbus OAuth SDK](https://connect2id.com/products/nimbus-oauth-openid-connect-sdk) and [Caffeine](https://github.com/ben-manes/caffeine) to implement an OAuth resource server.
+OAuth-Servlets is a library of servlet filters using the [Nimbus OAuth SDK](https://connect2id.com/products/nimbus-oauth-openid-connect-sdk) and [Caffeine](https://github.com/ben-manes/caffeine) to implement an OAuth resource server.
 
-# Rationale
+There's a twin library for Jakarta RS, [OAuth-RS](rs/README.md), that can be used outside a servlets environment, but can also be used alongside OAuth-Servlets.
+
+## Rationale
 
 For a few years I've been copy/pasting some code to implement bearer token introspection, most of the time using `java.net.http` or [OkHttp](https://square.github.io/okhttp/) for HTTP requests to the OAuth Introspection Endpoint, [Jackson](https://github.com/FasterXML/jackson) for JSON parsing of the response, and [Caffeine](https://github.com/ben-manes/caffeine) for caching of introspection responses.
 
 I've had that need again, though with slightly different requirements, and after making [OIDC-Servlets](https://github.com/tbroyer/oidc-servlets/) I thought I'd write a similar library for OAuth, also built on top of the Nimbus OAuth SDK.
 
-# Requirements
+## Requirements
 
 The project requires a JDK in version 21 or higher.
 
@@ -16,7 +18,7 @@ You will need Docker Compose to run the tests locally (e.g. to contribute).
 
 ## Usage
 
-Add a dependency on [`net.ltgt.oauth:oauth-servlets`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-servlets). You can also use the [`net.ltgt.oauth:oauth-bom`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-bom) BOM to make sure the library uses the same version of its [`net.ltgt.oauth:oauth-common`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-common) dependency.
+Add a dependency on [`net.ltgt.oauth:oauth-servlets`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-servlets). You can also use the [`net.ltgt.oauth:oauth-bom`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-bom) BOM to make sure the library uses the same version of its [`net.ltgt.oauth:oauth-common`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-common) dependency (and possibly align the version with OAuth-RS when used conjointly).
 
 Create a `TokenIntrospector` object and add it as a `ServletContext` attribute:
 
@@ -55,6 +57,9 @@ The `TokenFilter` will pass all requests down the filter chain (unless their `Au
 * The `IsAuthenticatedFilter` for instance only checks that a `TokenPrincipal` is indeed present (i.e. the request must include an `Authorization: Bearer` header with a valid token).
 * The `HasRoleFilter` checks whether the user has a given role; this requires using a custom `TokenPrincipal` (if only a `KeycloakTokenPrincipal`).
 * The `HasScopeFilter` will also check whether the token has a given scope value, and will respond with an `insufficient_scope` error otherwise.
+
+> [!NOTE]
+> If you use Jakarta RS in a servlets environment, you can use [OAuth-RS](rs/README.md) in addition to OAuth-Servlets to apply similar authorization filters at a Jakarta RS resource level. Those Jakarta RS filters use the same `TokenPrincipal`, retrieved from the Jakarta RS `SecurityContext`'s `getUserPrincipal()` which should mirror the `HttpServletRequest`'s `getUserPrincipal()` so the two libraries can work hand-in-hand.
 
 ### Cache configuration
 

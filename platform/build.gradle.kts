@@ -8,6 +8,7 @@ dependencies {
     constraints {
         api(projects.oauthCommon)
         api(projects.oauthServlets)
+        api(projects.oauthRs)
     }
 }
 
