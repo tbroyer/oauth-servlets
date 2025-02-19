@@ -18,6 +18,7 @@ fun include(
     include(projectPath)
     project(projectPath).projectDir = file(projectDir)
 }
+include(":oauth-bom", "platform")
 include(":oauth-common", "common")
 include(":oauth-servlets", "lib")
 

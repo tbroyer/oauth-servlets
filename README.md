@@ -16,7 +16,7 @@ You will need Docker Compose to run the tests locally (e.g. to contribute).
 
 ## Usage
 
-Add a dependency on [`net.ltgt.oauth:oauth-servlets`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-servlets).
+Add a dependency on [`net.ltgt.oauth:oauth-servlets`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-servlets). You can also use the [`net.ltgt.oauth:oauth-bom`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-bom) BOM to make sure the library uses the same version of its [`net.ltgt.oauth:oauth-common`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-common) dependency.
 
 Create a `TokenIntrospector` object and add it as a `ServletContext` attribute:
 

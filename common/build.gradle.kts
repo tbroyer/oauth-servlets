@@ -6,6 +6,8 @@ plugins {
 }
 
 dependencies {
+    api(platform(projects.oauthBom))
+
     api(libs.jspecify)
     api(libs.errorprone.annotations)
     api(libs.nimbus.oauthSdk)

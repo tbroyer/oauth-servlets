@@ -5,6 +5,8 @@ plugins {
 }
 
 dependencies {
+    api(platform(projects.oauthBom))
+
     api(projects.oauthCommon)
     api(libs.jspecify)
     api(libs.errorprone.annotations)

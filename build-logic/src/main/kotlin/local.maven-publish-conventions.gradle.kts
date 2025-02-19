@@ -2,32 +2,15 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.kotlin.dsl.*
 
 plugins {
-    `java`
     `maven-publish`
     signing
 }
 
 group = "net.ltgt.oauth"
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-
-            versionMapping {
-                usage("java-api") {
-                    fromResolutionOf("runtimeClasspath")
-                }
-                usage("java-runtime") {
-                    fromResolutionResult()
-                }
-            }
-
+        withType<MavenPublication>().configureEach {
             pom {
                 url = "https://github.com/tbroyer/oauth-servlets"
                 licenses {
@@ -55,7 +38,47 @@ publishing {
 signing {
     useGpgCmd()
     isRequired = !isSnapshot
-    sign(publishing.publications["mavenJava"])
+}
+
+pluginManager.withPlugin("java") {
+    configure<JavaPluginExtension> {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJava") {
+                from(components["java"])
+
+                versionMapping {
+                    usage("java-api") {
+                        fromResolutionOf("runtimeClasspath")
+                    }
+                    usage("java-runtime") {
+                        fromResolutionResult()
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        sign(publishing.publications["mavenJava"])
+    }
+}
+pluginManager.withPlugin("java-platform") {
+    publishing {
+        publications {
+            create<MavenPublication>("mavenJavaPlatform") {
+                from(components["javaPlatform"])
+            }
+        }
+    }
+
+    signing {
+        sign(publishing.publications["mavenJavaPlatform"])
+    }
 }
 
 inline val Project.isSnapshot
