@@ -32,7 +32,6 @@ testing {
             }
             targets.configureEach {
                 testTask {
-                    systemProperty("test.port", 8000)
                     systemProperty("test.issuer", "http://localhost:8080/realms/example")
                     systemProperty("test.app.clientId", "app")
                     systemProperty("test.app.clientSecret", "example")

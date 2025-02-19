@@ -9,12 +9,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Optional;
 import net.ltgt.oauth.servlet.HasScopeFilter;
 import net.ltgt.oauth.servlet.TokenPrincipal;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpTester;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -47,55 +46,50 @@ public class HasScopeFilterTest {
 
   @Test
   public void noAuthentication() throws Exception {
-    var request = HttpRequest.newBuilder().GET().uri(server.getURI("/")).build();
-    var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-    assertThat(response.statusCode()).isEqualTo(BearerTokenError.MISSING_TOKEN.getHTTPStatusCode());
-    var wwwAuthenticate = response.headers().firstValue("www-authenticate");
-    assertThat(wwwAuthenticate).isPresent();
-    assertThat(BearerTokenError.parse(wwwAuthenticate.get()))
-        .isEqualTo(BearerTokenError.MISSING_TOKEN);
+    var request = HttpTester.newRequest();
+    request.setMethod("GET");
+    request.setURI("/");
+    var response = server.getResponse(request);
+    assertThat(response.getStatus()).isEqualTo(BearerTokenError.MISSING_TOKEN.getHTTPStatusCode());
+    var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isNotNull();
+    assertThat(BearerTokenError.parse(wwwAuthenticate)).isEqualTo(BearerTokenError.MISSING_TOKEN);
   }
 
   @Test
   public void insufficientScope() throws Exception {
-    var request =
-        HttpRequest.newBuilder()
-            .GET()
-            .uri(server.getURI("/"))
-            .header("Authorization", client.get("test2").toAuthorizationHeader())
-            .build();
-    var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-    assertThat(response.statusCode())
+    var request = HttpTester.newRequest();
+    request.setMethod("GET");
+    request.setURI("/");
+    request.put(HttpHeader.AUTHORIZATION, client.get("test2").toAuthorizationHeader());
+    var response = server.getResponse(request);
+    assertThat(response.getStatus())
         .isEqualTo(BearerTokenError.INSUFFICIENT_SCOPE.getHTTPStatusCode());
-    var wwwAuthenticate = response.headers().firstValue("www-authenticate");
-    assertThat(wwwAuthenticate).isPresent();
-    assertThat(BearerTokenError.parse(wwwAuthenticate.get()))
+    var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isNotNull();
+    assertThat(BearerTokenError.parse(wwwAuthenticate))
         .isEqualTo(BearerTokenError.INSUFFICIENT_SCOPE.setScope(new Scope("test1")));
   }
 
   @Test
   public void validToken() throws Exception {
-    var request =
-        HttpRequest.newBuilder()
-            .GET()
-            .uri(server.getURI("/"))
-            .header("Authorization", client.get("test1").toAuthorizationHeader())
-            .build();
-    var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-    assertThat(response.statusCode()).isEqualTo(200);
-    assertThat(response.body()).isEqualTo("service-account-app");
+    var request = HttpTester.newRequest();
+    request.setMethod("GET");
+    request.setURI("/");
+    request.put(HttpHeader.AUTHORIZATION, client.get("test1").toAuthorizationHeader());
+    var response = server.getResponse(request);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContent()).isEqualTo("service-account-app");
   }
 
   @Test
   public void validToken2() throws Exception {
-    var request =
-        HttpRequest.newBuilder()
-            .GET()
-            .uri(server.getURI("/"))
-            .header("Authorization", client.get("test1", "test2").toAuthorizationHeader())
-            .build();
-    var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-    assertThat(response.statusCode()).isEqualTo(200);
-    assertThat(response.body()).isEqualTo("service-account-app");
+    var request = HttpTester.newRequest();
+    request.setMethod("GET");
+    request.setURI("/");
+    request.put(HttpHeader.AUTHORIZATION, client.get("test1", "test2").toAuthorizationHeader());
+    var response = server.getResponse(request);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContent()).isEqualTo("service-account-app");
   }
 }

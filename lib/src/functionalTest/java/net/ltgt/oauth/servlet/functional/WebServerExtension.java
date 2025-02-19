@@ -9,13 +9,15 @@ import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
-import java.net.URI;
 import java.util.function.Consumer;
 import net.ltgt.oauth.servlet.KeycloakTokenPrincipal;
 import net.ltgt.oauth.servlet.TokenFilter;
 import net.ltgt.oauth.servlet.TokenIntrospector;
 import net.ltgt.oauth.servlet.TokenPrincipalProvider;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpTester;
+import org.eclipse.jetty.server.LocalConnector;
 import org.eclipse.jetty.server.Server;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -24,8 +26,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class WebServerExtension implements BeforeEachCallback, AfterEachCallback {
   private final ReadOnlyAuthorizationServerMetadata authorizationServerMetadata;
   private final ClientSecretBasic clientAuthentication;
-  private final int port;
   private final Server server;
+  private final LocalConnector connector;
 
   public ReadOnlyAuthorizationServerMetadata getAuthorizationServerMetadata() {
     return authorizationServerMetadata;
@@ -35,8 +37,9 @@ public class WebServerExtension implements BeforeEachCallback, AfterEachCallback
     return clientAuthentication;
   }
 
-  public URI getURI(String path) {
-    return URI.create("http://localhost:" + port + path);
+  public HttpTester.Response getResponse(HttpTester.Request request) throws Exception {
+    request.put(HttpHeader.HOST, "localhost");
+    return HttpTester.parseResponse(connector.getResponse(request.generate()));
   }
 
   public WebServerExtension(Consumer<ServletContextHandler> configure) {
@@ -45,8 +48,9 @@ public class WebServerExtension implements BeforeEachCallback, AfterEachCallback
         new ClientSecretBasic(
             new ClientID(requireNonNull(System.getProperty("test.api.clientId"))),
             new Secret(requireNonNull(System.getProperty("test.api.clientSecret"))));
-    port = Integer.getInteger("test.api.port", 8000);
-    server = new Server(port);
+    server = new Server();
+    connector = new LocalConnector(server);
+    server.addConnector(connector);
     var contextHandler = new ServletContextHandler();
     server.setHandler(contextHandler);
 
