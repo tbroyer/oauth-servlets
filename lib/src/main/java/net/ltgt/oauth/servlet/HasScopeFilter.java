@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import net.ltgt.oauth.common.TokenPrincipal;
 
 /**
  * Ensures the token {@linkplain TokenPrincipal#hasScope(Scope.Value) has a given scope value}.

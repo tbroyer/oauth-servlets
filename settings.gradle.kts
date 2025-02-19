@@ -11,7 +11,14 @@ dependencyResolutionManagement {
     }
 }
 
-include(":oauth-servlets")
-project(":oauth-servlets").projectDir = file("lib")
+fun include(
+    projectPath: String,
+    projectDir: String,
+) {
+    include(projectPath)
+    project(projectPath).projectDir = file(projectDir)
+}
+include(":oauth-common", "common")
+include(":oauth-servlets", "lib")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

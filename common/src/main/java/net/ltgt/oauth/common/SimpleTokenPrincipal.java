@@ -1,4 +1,4 @@
-package net.ltgt.oauth.servlet;
+package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
 

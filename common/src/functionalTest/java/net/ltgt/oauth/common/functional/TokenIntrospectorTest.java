@@ -1,31 +1,46 @@
-package net.ltgt.oauth.servlet.functional;
+package net.ltgt.oauth.common.functional;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static java.util.Objects.requireNonNull;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.nimbusds.oauth2.sdk.as.ReadOnlyAuthorizationServerMetadata;
+import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
+import com.nimbusds.oauth2.sdk.auth.Secret;
+import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
-import net.ltgt.oauth.servlet.TokenIntrospector;
+import net.ltgt.oauth.common.TokenIntrospector;
+import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
+import net.ltgt.oauth.common.fixtures.Helpers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TokenIntrospectorTest {
-  // Wilfully not @RegisterExtension
-  private final WebServerExtension server = new WebServerExtension(contextHandler -> {});
+
+  private static ReadOnlyAuthorizationServerMetadata authorizationServerMetadata;
+  private static ClientSecretBasic clientAuthentication;
 
   @RegisterExtension public BearerTokenExtension client = new BearerTokenExtension();
 
   private TokenIntrospector tokenIntrospector;
 
+  @BeforeAll
+  public static void setUpOnce() {
+    authorizationServerMetadata = Helpers.loadAuthorizationServerMetadata();
+    clientAuthentication =
+        new ClientSecretBasic(
+            new ClientID(requireNonNull(System.getProperty("test.api.clientId"))),
+            new Secret(requireNonNull(System.getProperty("test.api.clientSecret"))));
+  }
+
   @BeforeEach
   public void setUp() {
     tokenIntrospector =
         new TokenIntrospector(
-            server.getAuthorizationServerMetadata(),
-            server.getClientAuthentication(),
-            Caffeine.newBuilder().recordStats());
+            authorizationServerMetadata, clientAuthentication, Caffeine.newBuilder().recordStats());
   }
 
   @Test

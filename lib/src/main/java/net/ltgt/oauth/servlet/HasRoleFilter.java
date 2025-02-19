@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import net.ltgt.oauth.common.TokenPrincipal;
 
 /**
  * Ensures the user {@linkplain TokenPrincipal#hasRole has a given role}.

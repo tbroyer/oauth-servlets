@@ -1,4 +1,4 @@
-package net.ltgt.oauth.servlet.functional;
+package net.ltgt.oauth.common.fixtures;
 
 import static java.util.Objects.requireNonNull;
 

@@ -2,16 +2,24 @@ plugins {
     id("local.java-conventions")
     id("local.maven-publish-conventions")
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
-    api(projects.oauthCommon)
     api(libs.jspecify)
     api(libs.errorprone.annotations)
     api(libs.nimbus.oauthSdk)
-    api(libs.jakarta.servletApi)
     api(libs.caffeine)
+
+    testFixturesApi(libs.junitJupiter.api)
+    testFixturesApi(libs.nullaway.annotations)
 }
+
+// Don't publish test fixtures
+// https://docs.gradle.org/current/userguide/java_testing.html#ex-disable-publishing-of-test-fixtures-variants
+val javaComponent = components["java"] as AdhocComponentWithVariants
+javaComponent.withVariantsFromConfiguration(configurations.testFixturesApiElements.get()) { skip() }
+javaComponent.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements.get()) { skip() }
 
 testing {
     suites {
@@ -21,10 +29,7 @@ testing {
         register<JvmTestSuite>("functionalTest") {
             dependencies {
                 implementation(project())
-                implementation(testFixtures(projects.oauthCommon))
-                implementation(platform(libs.jetty.bom))
-                implementation(platform(libs.jetty.ee10.bom))
-                implementation(libs.jetty.servlet)
+                implementation(testFixtures(project()))
                 implementation(libs.truth) {
                     // See https://github.com/google/truth/issues/333
                     exclude(group = "junit", module = "junit")
@@ -46,7 +51,7 @@ testing {
 
 tasks {
     javadoc {
-        title = "OAuth Servlets API"
+        title = "OAuth Servlets Common API"
     }
 }
 
@@ -54,8 +59,8 @@ publishing {
     publications {
         withType<MavenPublication>().configureEach {
             pom {
-                name = "OAuth Servlets"
-                description = "Servlet filters implementing OAuth, through the Nimbus SDK"
+                name = "OAuth Servlets Common"
+                description = "Common classes implementing OAuth, through the Nimbus SDK"
             }
         }
     }

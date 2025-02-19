@@ -1,12 +1,12 @@
-package net.ltgt.oauth.servlet;
+package net.ltgt.oauth.common;
 
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
 
 /**
- * Called by {@link TokenFilter} on each request to get a {@link TokenPrincipal}.
+ * Called by the {@code TokenFilter} on each request to get a {@link TokenPrincipal}.
  *
- * <p>An instance of this class needs to be registered as a {@link jakarta.servlet.ServletContext
- * ServletContext} attribute under the name {@link #CONTEXT_ATTRIBUTE_NAME}.
+ * <p>An instance of this class needs to be registered as a {@code ServletContext} attribute or
+ * Jakarta RS {@code Configuration} property under the name {@link #CONTEXT_ATTRIBUTE_NAME}.
  *
  * <p>The {@link CachedTokenPrincipalProvider} subclass can be used to cache the values when they're
  * somewhat costly to create (for instance because they need to load data from a database).

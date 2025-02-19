@@ -1,4 +1,4 @@
-package net.ltgt.oauth.servlet;
+package net.ltgt.oauth.common;
 
 import com.nimbusds.oauth2.sdk.Scope;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
@@ -17,12 +17,7 @@ public interface TokenPrincipal extends Principal {
     return getTokenInfo().getSubject().getValue();
   }
 
-  /**
-   * Returns whether the user has a given role.
-   *
-   * @see HasRoleFilter
-   * @see jakarta.servlet.http.HttpServletRequest#isUserInRole
-   */
+  /** Returns whether the user has a given role. */
   boolean hasRole(String role);
 
   /**
@@ -30,8 +25,6 @@ public interface TokenPrincipal extends Principal {
    *
    * <p>The default implementation is equivalent to {@code
    * getTokenInfo().getScope().contains(scope)}.
-   *
-   * @see HasScopeFilter
    */
   default boolean hasScope(Scope.Value scope) {
     return getTokenInfo().getScope().contains(scope);
@@ -42,8 +35,6 @@ public interface TokenPrincipal extends Principal {
    *
    * <p>The default implementation is equivalent to {@code
    * getTokenInfo().getScope().contains(scope)}.
-   *
-   * @see HasScopeFilter
    */
   default boolean hasScope(String scope) {
     return getTokenInfo().getScope().contains(scope);

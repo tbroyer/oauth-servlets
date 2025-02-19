@@ -4,9 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.errorprone.annotations.ForOverride;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
-import com.nimbusds.oauth2.sdk.ParseException;
-import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,7 +13,11 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.concurrent.CompletionException;
+import net.ltgt.oauth.common.SimpleTokenPrincipal;
+import net.ltgt.oauth.common.TokenFilterHelper;
+import net.ltgt.oauth.common.TokenIntrospector;
+import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenPrincipalProvider;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -72,54 +73,26 @@ public class TokenFilter extends HttpFilter {
   @Override
   protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
-    if (req.getUserPrincipal() != null) {
-      // Already authenticated
-      super.doFilter(req, res, chain);
-      return;
-    }
-    var authorization = req.getHeader("Authorization");
-    if (authorization == null
-        || !authorization.regionMatches(true, 0, "bearer", 0, 6)
-        || (authorization.length() != 6 && authorization.charAt(6) != ' ')) {
-      super.doFilter(req, res, chain);
-      return;
-    }
-    BearerAccessToken token;
-    try {
-      token = BearerAccessToken.parse(authorization);
-    } catch (ParseException e) {
-      if (BearerTokenError.MISSING_TOKEN.equals(e.getErrorObject())) {
-        // This should never happen, but just in case
-        token = null;
-      } else {
-        sendError(
-            res,
-            ((BearerTokenError) e.getErrorObject()),
-            "Error parsing the Authorization header",
-            e);
-        return;
+    new TokenFilterHelper<ServletException>(tokenIntrospector, tokenPrincipalProvider) {
+
+      @Override
+      protected void continueChain(@Nullable TokenPrincipal tokenPrincipal)
+          throws IOException, ServletException {
+        chain.doFilter(tokenPrincipal != null ? wrapRequest(req, tokenPrincipal) : req, res);
       }
-    }
-    if (token != null) {
-      TokenIntrospectionSuccessResponse introspectionResponse;
-      try {
-        introspectionResponse = tokenIntrospector.introspect(token);
-      } catch (CompletionException e) {
-        sendError(
-            res,
-            HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-            "Error introspecting token",
-            e.getCause());
-        return;
+
+      @Override
+      protected void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
+          throws IOException {
+        TokenFilter.this.sendError(res, error, message, cause);
       }
-      if (introspectionResponse == null) {
-        sendError(res, BearerTokenError.INVALID_TOKEN, "Invalid token", null);
-        return;
+
+      @Override
+      protected void sendError(int statusCode, String message, @Nullable Throwable cause)
+          throws IOException, ServletException {
+        TokenFilter.this.sendError(res, statusCode, message, cause);
       }
-      var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
-      req = wrapRequest(req, tokenPrincipal);
-    }
-    super.doFilter(req, res, chain);
+    }.filter(req.getUserPrincipal(), req.getHeader("Authorization"));
   }
 
   @ForOverride
