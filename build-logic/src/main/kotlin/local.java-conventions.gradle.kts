@@ -9,6 +9,15 @@ plugins {
     id("org.gradlex.jvm-dependency-conflict-resolution")
 }
 
+jvmDependencyConflicts {
+    patch {
+        // See https://github.com/google/truth/issues/333
+        module("com.google.truth:truth") {
+            reduceToRuntimeOnlyDependency("junit:junit")
+        }
+    }
+}
+
 dependencies {
     errorprone(project.versionCatalogs.named("libs").findBundle("errorprone").orElseThrow())
 }

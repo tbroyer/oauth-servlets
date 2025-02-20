@@ -25,11 +25,7 @@ testing {
                 implementation(platform(libs.jetty.bom))
                 implementation(platform(libs.jetty.ee10.bom))
                 implementation(libs.jetty.servlet)
-                implementation(libs.truth) {
-                    // See https://github.com/google/truth/issues/333
-                    exclude(group = "junit", module = "junit")
-                }
-                runtimeOnly(libs.truth) // to add junit:junit back
+                implementation(libs.truth)
             }
             targets.configureEach {
                 testTask {
