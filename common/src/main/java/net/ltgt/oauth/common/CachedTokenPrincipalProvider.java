@@ -9,6 +9,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.errorprone.annotations.ForOverride;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -17,9 +18,12 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The {@link #newInstance} static factories can be used to wrap an existing {@link
  * TokenPrincipalProvider} to cache its values.
+ *
+ * <p>The cache uses {@link Optional} values to cache {@code null} values returned by {@link #load}
+ * or the wrapped {@link TokenPrincipalProvider}.
  */
 public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProvider {
-  private final LoadingCache<TokenIntrospectionSuccessResponse, @Nullable TokenPrincipal> cache;
+  private final LoadingCache<TokenIntrospectionSuccessResponse, Optional<TokenPrincipal>> cache;
 
   /**
    * Wraps the given provider to cache its provided values, using the {@linkplain
@@ -30,7 +34,8 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    */
   public static CachedTokenPrincipalProvider newInstance(
       TokenPrincipalProvider tokenPrincipalProvider,
-      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder) {
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super Optional<TokenPrincipal>>
+          cacheBuilder) {
     checkNotAlreadyCached(tokenPrincipalProvider);
     return new CachedTokenPrincipalProvider.Delegating(
         requireNonNull(tokenPrincipalProvider), cacheBuilder);
@@ -44,7 +49,8 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    */
   public static CachedTokenPrincipalProvider newInstance(
       TokenPrincipalProvider tokenPrincipalProvider,
-      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder,
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super Optional<TokenPrincipal>>
+          cacheBuilder,
       int maxClockSkewSeconds) {
     checkNotAlreadyCached(tokenPrincipalProvider);
     return new CachedTokenPrincipalProvider.Delegating(
@@ -64,7 +70,8 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    * {@linkplain TokenIntrospector#DEFAULT_MAX_CLOCK_SKEW_SECONDS default max clock skew}.
    */
   protected CachedTokenPrincipalProvider(
-      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder) {
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super Optional<TokenPrincipal>>
+          cacheBuilder) {
     this(cacheBuilder, TokenIntrospector.DEFAULT_MAX_CLOCK_SKEW_SECONDS);
   }
 
@@ -72,22 +79,23 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    * Creates a cached {@link TokenPrincipal} provider with the given cache builder and max clock
    * skew.
    */
-  @SuppressWarnings("NullAway")
   protected CachedTokenPrincipalProvider(
-      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder,
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super Optional<TokenPrincipal>>
+          cacheBuilder,
       int maxClockSkewSeconds) {
     this.cache =
-        cacheBuilder.<TokenIntrospectionSuccessResponse, @Nullable TokenPrincipal>build(
-            new CacheLoader<TokenIntrospectionSuccessResponse, @Nullable TokenPrincipal>() {
+        cacheBuilder.build(
+            new CacheLoader<>() {
               @Override
-              public TokenPrincipal load(TokenIntrospectionSuccessResponse key) {
-                return requireNonNull(CachedTokenPrincipalProvider.this.load(key));
+              public Optional<TokenPrincipal> load(TokenIntrospectionSuccessResponse key) {
+                return Optional.ofNullable(CachedTokenPrincipalProvider.this.load(key));
               }
 
               @Override
-              public TokenPrincipal reload(
-                  TokenIntrospectionSuccessResponse key, TokenPrincipal oldValue) {
-                if (!TokenIntrospector.isValidToken(key, maxClockSkewSeconds)) {
+              public Optional<TokenPrincipal> reload(
+                  TokenIntrospectionSuccessResponse key, Optional<TokenPrincipal> oldValue) {
+                if (oldValue.isEmpty()
+                    || !TokenIntrospector.isValidToken(key, maxClockSkewSeconds)) {
                   return oldValue;
                 }
                 return load(key);
@@ -148,15 +156,16 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    * valid at the time of the call.
    */
   @ForOverride
-  protected abstract TokenPrincipal load(TokenIntrospectionSuccessResponse introspectionResponse);
+  protected abstract @Nullable TokenPrincipal load(
+      TokenIntrospectionSuccessResponse introspectionResponse);
 
   @Override
-  public final TokenPrincipal getTokenPrincipal(
+  public final @Nullable TokenPrincipal getTokenPrincipal(
       TokenIntrospectionSuccessResponse introspectionResponse) {
     if (!introspectionResponse.isActive()) {
       throw new IllegalArgumentException();
     }
-    return requireNonNull(cache.get(introspectionResponse));
+    return cache.get(introspectionResponse).orElse(null);
   }
 
   private static class Delegating extends CachedTokenPrincipalProvider {
@@ -165,21 +174,24 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
 
     Delegating(
         TokenPrincipalProvider tokenPrincipalProvider,
-        Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder) {
+        Caffeine<? super TokenIntrospectionSuccessResponse, ? super Optional<TokenPrincipal>>
+            cacheBuilder) {
       super(cacheBuilder);
       this.tokenPrincipalProvider = tokenPrincipalProvider;
     }
 
     Delegating(
         TokenPrincipalProvider tokenPrincipalProvider,
-        Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder,
+        Caffeine<? super TokenIntrospectionSuccessResponse, ? super Optional<TokenPrincipal>>
+            cacheBuilder,
         int maxClockSkewSeconds) {
       super(cacheBuilder, maxClockSkewSeconds);
       this.tokenPrincipalProvider = tokenPrincipalProvider;
     }
 
     @Override
-    protected TokenPrincipal load(TokenIntrospectionSuccessResponse introspectionResponse) {
+    protected @Nullable TokenPrincipal load(
+        TokenIntrospectionSuccessResponse introspectionResponse) {
       return tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
     }
   }

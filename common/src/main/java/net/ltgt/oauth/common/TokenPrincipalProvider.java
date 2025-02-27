@@ -1,6 +1,7 @@
 package net.ltgt.oauth.common;
 
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Called by the {@code TokenFilter} on each request to get a {@link TokenPrincipal}.
@@ -20,9 +21,14 @@ public interface TokenPrincipalProvider {
   /**
    * Returns a {@link TokenPrincipal} for the given introspection response.
    *
+   * <p>If it returns {@code null} (for example if the token doesn't match any known local
+   * <i>user</i>), then the {@code TokenFilter} will let the request in as if no token had been
+   * provided (i.e. without a principal).
+   *
    * <p>The introspection response is guaranteed to be {@linkplain
    * TokenIntrospectionSuccessResponse#isActive() active} and should represent a token that is still
    * valid at the time of the call.
    */
-  TokenPrincipal getTokenPrincipal(TokenIntrospectionSuccessResponse introspectionResponse);
+  @Nullable TokenPrincipal getTokenPrincipal(
+      TokenIntrospectionSuccessResponse introspectionResponse);
 }
