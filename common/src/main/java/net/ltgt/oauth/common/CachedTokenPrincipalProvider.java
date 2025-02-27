@@ -30,7 +30,7 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    */
   public static CachedTokenPrincipalProvider newInstance(
       TokenPrincipalProvider tokenPrincipalProvider,
-      Caffeine<TokenIntrospectionSuccessResponse, TokenPrincipal> cacheBuilder) {
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder) {
     checkNotAlreadyCached(tokenPrincipalProvider);
     return new CachedTokenPrincipalProvider.Delegating(
         requireNonNull(tokenPrincipalProvider), cacheBuilder);
@@ -44,7 +44,7 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    */
   public static CachedTokenPrincipalProvider newInstance(
       TokenPrincipalProvider tokenPrincipalProvider,
-      Caffeine<TokenIntrospectionSuccessResponse, TokenPrincipal> cacheBuilder,
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder,
       int maxClockSkewSeconds) {
     checkNotAlreadyCached(tokenPrincipalProvider);
     return new CachedTokenPrincipalProvider.Delegating(
@@ -64,7 +64,7 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    * {@linkplain TokenIntrospector#DEFAULT_MAX_CLOCK_SKEW_SECONDS default max clock skew}.
    */
   protected CachedTokenPrincipalProvider(
-      Caffeine<TokenIntrospectionSuccessResponse, TokenPrincipal> cacheBuilder) {
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder) {
     this(cacheBuilder, TokenIntrospector.DEFAULT_MAX_CLOCK_SKEW_SECONDS);
   }
 
@@ -74,7 +74,7 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
    */
   @SuppressWarnings("NullAway")
   protected CachedTokenPrincipalProvider(
-      Caffeine<TokenIntrospectionSuccessResponse, TokenPrincipal> cacheBuilder,
+      Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder,
       int maxClockSkewSeconds) {
     this.cache =
         cacheBuilder.<TokenIntrospectionSuccessResponse, @Nullable TokenPrincipal>build(
@@ -165,14 +165,14 @@ public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProv
 
     Delegating(
         TokenPrincipalProvider tokenPrincipalProvider,
-        Caffeine<TokenIntrospectionSuccessResponse, TokenPrincipal> cacheBuilder) {
+        Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder) {
       super(cacheBuilder);
       this.tokenPrincipalProvider = tokenPrincipalProvider;
     }
 
     Delegating(
         TokenPrincipalProvider tokenPrincipalProvider,
-        Caffeine<TokenIntrospectionSuccessResponse, TokenPrincipal> cacheBuilder,
+        Caffeine<? super TokenIntrospectionSuccessResponse, ? super TokenPrincipal> cacheBuilder,
         int maxClockSkewSeconds) {
       super(cacheBuilder, maxClockSkewSeconds);
       this.tokenPrincipalProvider = tokenPrincipalProvider;
