@@ -23,7 +23,7 @@ jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
 nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.23.1"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
-resteasy-bom = "org.jboss.resteasy:resteasy-bom:6.2.11.Final"
+resteasy-bom = "org.jboss.resteasy:resteasy-bom:6.2.12.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
 truth = "com.google.truth:truth:1.4.4"
 
