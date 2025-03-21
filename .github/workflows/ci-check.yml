@@ -27,9 +27,9 @@ jobs:
         run: |
           docker compose pull --quiet
           docker compose up -d
-          docker compose attach keycloak-config || true
+          docker compose up --exit-code-from=keycloak-config keycloak-config
           ./gradlew functionalTest
-          docker compose down
+          docker compose down -v
 
       - uses: "actions/upload-artifact@v4"
         if: "always()"
