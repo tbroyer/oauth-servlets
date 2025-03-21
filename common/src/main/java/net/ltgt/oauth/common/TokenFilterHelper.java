@@ -1,5 +1,7 @@
 package net.ltgt.oauth.common;
 
+import static java.util.Objects.requireNonNull;
+
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
@@ -16,8 +18,8 @@ public abstract class TokenFilterHelper<E extends Exception> {
 
   protected TokenFilterHelper(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
-    this.tokenIntrospector = tokenIntrospector;
-    this.tokenPrincipalProvider = tokenPrincipalProvider;
+    this.tokenIntrospector = requireNonNull(tokenIntrospector);
+    this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);
   }
 
   public void filter(@Nullable Principal principal, @Nullable String authorization)
