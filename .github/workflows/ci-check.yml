@@ -23,7 +23,8 @@ jobs:
 
       - run: "./gradlew build"
 
-      - run: |
+      - name: "Run ./gradlew functionalTest"
+        run: |
           docker compose pull --quiet
           docker compose up -d
           docker compose attach keycloak-config || true
