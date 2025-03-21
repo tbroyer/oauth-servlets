@@ -25,7 +25,7 @@ jobs:
 
       - run: |
           docker compose up --quiet-pull -d
-          docker compose up keycloak-config
+          docker compose attach keycloak-config || true
           ./gradlew functionalTest
           docker compose down
 
