@@ -40,7 +40,7 @@ errorprone = [ "errorprone-core", "nullaway" ]
 
 [plugins]
 errorprone = "net.ltgt.errorprone:4.1.0"
-jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.1.2"
+jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.2"
 nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
 nullaway = "net.ltgt.nullaway:2.2.0"
-spotless = "com.diffplug.spotless:7.0.2"
+spotless = "com.diffplug.spotless:7.0.3"
