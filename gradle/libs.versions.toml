@@ -2,7 +2,7 @@
 [versions]
 errorprone = "2.37.0"
 jetty = "12.0.19"
-junitJupiter = "5.12.1"
+junitJupiter = "5.12.2"
 nullaway = "0.12.6"
 
 # Versions used in build-logic
@@ -39,7 +39,7 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 errorprone = [ "errorprone-core", "nullaway" ]
 
 [plugins]
-errorprone = "net.ltgt.errorprone:4.1.0"
+errorprone = "net.ltgt.errorprone:4.2.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.2"
 nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
 nullaway = "net.ltgt.nullaway:2.2.0"
