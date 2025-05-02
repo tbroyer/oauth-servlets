@@ -3,7 +3,7 @@
 errorprone = "2.38.0"
 jetty = "12.0.19"
 junitJupiter = "5.12.2"
-nullaway = "0.12.6"
+nullaway = "0.12.7"
 
 # Versions used in build-logic
 googleJavaFormat = "1.26.0"
