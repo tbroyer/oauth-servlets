@@ -1,7 +1,7 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
 errorprone = "2.38.0"
-jetty = "12.0.20"
+jetty = "12.0.21"
 junitJupiter = "5.12.2"
 nullaway = "0.12.7"
 
@@ -40,7 +40,7 @@ errorprone = [ "errorprone-core", "nullaway" ]
 
 [plugins]
 errorprone = "net.ltgt.errorprone:4.2.0"
-jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.2"
+jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.3"
 nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
 nullaway = "net.ltgt.nullaway:2.2.0"
 spotless = "com.diffplug.spotless:7.0.3"
