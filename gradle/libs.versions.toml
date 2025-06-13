@@ -2,7 +2,7 @@
 [versions]
 errorprone = "2.38.0"
 jetty = "12.0.22"
-junitJupiter = "5.13.0"
+junitJupiter = "5.13.1"
 nullaway = "0.12.7"
 
 # Versions used in build-logic
@@ -10,7 +10,7 @@ googleJavaFormat = "1.27.0"
 ktlint = "1.6.0"
 
 [libraries]
-caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.0"
+caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.1"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
 jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
@@ -40,7 +40,7 @@ errorprone = [ "errorprone-core", "nullaway" ]
 
 [plugins]
 errorprone = "net.ltgt.errorprone:4.2.0"
-jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.3"
+jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.4"
 nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
 nullaway = "net.ltgt.nullaway:2.2.0"
 spotless = "com.diffplug.spotless:7.0.4"
