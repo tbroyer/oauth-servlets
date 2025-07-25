@@ -1,13 +1,13 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
-errorprone = "2.40.0"
+errorprone = "2.41.0"
 jetty = "12.0.23"
-junitJupiter = "5.13.3"
+junitJupiter = "5.13.4"
 nullaway = "0.12.7"
 
 # Versions used in build-logic
 googleJavaFormat = "1.28.0"
-ktlint = "1.7.0"
+ktlint = "1.7.1"
 
 [libraries]
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.2"
@@ -20,7 +20,7 @@ jetty-ee10-bom = { module = "org.eclipse.jetty.ee10:jetty-ee10-bom", version.ref
 jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet" }
 jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
-nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.26"
+nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.26.1"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
 resteasy-bom = "org.jboss.resteasy:resteasy-bom:6.2.12.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
@@ -43,4 +43,4 @@ errorprone = "net.ltgt.errorprone:4.3.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.4"
 nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
 nullaway = "net.ltgt.nullaway:2.2.0"
-spotless = "com.diffplug.spotless:7.1.0"
+spotless = "com.diffplug.spotless:7.2.1"
