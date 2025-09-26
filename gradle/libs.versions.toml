@@ -1,6 +1,6 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
-errorprone = "2.41.0"
+errorprone = "2.42.0"
 jetty = "12.1.1"
 junitJupiter = "5.13.4"
 nullaway = "0.12.10"
@@ -20,7 +20,7 @@ jetty-ee10-bom = { module = "org.eclipse.jetty.ee10:jetty-ee10-bom", version.ref
 jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet" }
 jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
-nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.28"
+nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.29.1"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
 resteasy-bom = "org.jboss.resteasy:resteasy-bom:6.2.12.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
