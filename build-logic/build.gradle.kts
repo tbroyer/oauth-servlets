@@ -8,6 +8,7 @@ dependencies {
     implementation(plugin(libs.plugins.errorprone))
     implementation(plugin(libs.plugins.nullaway))
     implementation(plugin(libs.plugins.jvmDependencyConflictResolution))
+    implementation(plugin(libs.plugins.vanniktechMavenPublish))
 }
 
 spotless {

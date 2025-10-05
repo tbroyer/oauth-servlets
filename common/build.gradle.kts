@@ -22,6 +22,9 @@ dependencies {
 val javaComponent = components["java"] as AdhocComponentWithVariants
 javaComponent.withVariantsFromConfiguration(configurations.testFixturesApiElements.get()) { skip() }
 javaComponent.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements.get()) { skip() }
+// Workaround for https://github.com/vanniktech/gradle-maven-publish-plugin/issues/779
+mavenPublishing.configureBasedOnAppliedPlugins()
+javaComponent.withVariantsFromConfiguration(configurations["testFixturesSourcesElements"]) { skip() }
 
 testing {
     suites {
@@ -58,13 +61,9 @@ tasks {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication>().configureEach {
-            pom {
-                name = "OAuth Servlets Common"
-                description = "Common classes implementing OAuth, through the Nimbus SDK"
-            }
-        }
+mavenPublishing {
+    pom {
+        name = "OAuth Servlets Common"
+        description = "Common classes implementing OAuth, through the Nimbus SDK"
     }
 }

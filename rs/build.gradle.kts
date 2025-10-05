@@ -44,13 +44,9 @@ tasks {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication>().configureEach {
-            pom {
-                name = "OAuth RS"
-                description = "Jakarta RS filters implementing OAuth, through the Nimbus SDK"
-            }
-        }
+mavenPublishing {
+    pom {
+        name = "OAuth RS"
+        description = "Jakarta RS filters implementing OAuth, through the Nimbus SDK"
     }
 }

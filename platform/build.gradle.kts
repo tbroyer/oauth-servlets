@@ -12,13 +12,9 @@ dependencies {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication>().configureEach {
-            pom {
-                name = "OAuth Servlets BOM"
-                description = "Bill of Materials for OAuth Servlets"
-            }
-        }
+mavenPublishing {
+    pom {
+        name = "OAuth Servlets BOM"
+        description = "Bill of Materials for OAuth Servlets"
     }
 }

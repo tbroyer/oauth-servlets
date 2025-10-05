@@ -48,13 +48,9 @@ tasks {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication>().configureEach {
-            pom {
-                name = "OAuth Servlets"
-                description = "Servlet filters implementing OAuth, through the Nimbus SDK"
-            }
-        }
+mavenPublishing {
+    pom {
+        name = "OAuth Servlets"
+        description = "Servlet filters implementing OAuth, through the Nimbus SDK"
     }
 }

@@ -41,6 +41,6 @@ errorprone = [ "errorprone-core", "nullaway" ]
 [plugins]
 errorprone = "net.ltgt.errorprone:4.3.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.4"
-nexusPublish = "io.github.gradle-nexus.publish-plugin:2.0.0"
 nullaway = "net.ltgt.nullaway:2.3.0"
 spotless = "com.diffplug.spotless:8.0.0"
+vanniktechMavenPublish = "com.vanniktech.maven.publish:0.34.0"
