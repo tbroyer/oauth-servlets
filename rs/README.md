@@ -1,7 +1,7 @@
 # oauth-rs
 
-OAuth-RS is a library of Jakarta RS container filters using the [Nimbus OAuth SDK](https://connect2id.com/products/nimbus-oauth-openid-connect-sdk) and [Caffeine](https://github.com/ben-manes/caffeine) to help implement an OAuth resource server.
-It is the Jakarta RS twin of [OAuth-Servlets](../README.md), and can also be used as a companion in a servlets environment.
+OAuth-RS is a library of JAX-RS container filters using the [Nimbus OAuth SDK](https://connect2id.com/products/nimbus-oauth-openid-connect-sdk) and [Caffeine](https://github.com/ben-manes/caffeine) to help implement an OAuth resource server.
+It is the JAX-RS twin of [OAuth-Servlets](../README.md), and can also be used as a companion in a servlets environment.
 
 ## Requirements
 
@@ -53,7 +53,7 @@ servletContext.setAttribute(
 Custom implementations can also read additional data (e.g. from a database) to expose in their custom `TokenPrincipal`. If they can't afford doing it on each request, or would just rather do it once and _cache_ it for some time, they can extend `CachedTokenPrincipalProvider` or use it to wrap any existing `TokenPrincipalProvider`.
 
 > [!NOTE]
-> If you use Jakarta RS in a servlets environment, you can use the `TokenFilter` from [OAuth-Servlets](../README.md) instead of the one from OAuth-RS. It will setup the `HttpServletRequest`'s `getUserPrincipal()` with the same `TokenPrincipal`, that should be mirrored by the Jakarta RS `SecurityContext`'s `getUserPrincipal()` so the two libraries can work hand-in-hand.
+> If you use JAX-RS in a servlets environment, you can use the `TokenFilter` from [OAuth-Servlets](../README.md) instead of the one from OAuth-RS. It will setup the `HttpServletRequest`'s `getUserPrincipal()` with the same `TokenPrincipal`, that should be mirrored by the JAX-RS `SecurityContext`'s `getUserPrincipal()` so the two libraries can work hand-in-hand.
 
 ### Authorizations
 

@@ -47,6 +47,6 @@ tasks {
 mavenPublishing {
     pom {
         name = "OAuth RS"
-        description = "Jakarta RS filters implementing OAuth, through the Nimbus SDK"
+        description = "JAX-RS filters implementing OAuth, through the Nimbus SDK"
     }
 }
