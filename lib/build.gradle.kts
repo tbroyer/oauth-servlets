@@ -27,6 +27,7 @@ testing {
                 implementation(platform(libs.jetty.bom))
                 implementation(platform(libs.jetty.ee10.bom))
                 implementation(libs.jetty.servlet)
+                runtimeOnly(libs.jetty.slf4jImpl)
                 implementation(libs.truth)
             }
             targets.configureEach {
