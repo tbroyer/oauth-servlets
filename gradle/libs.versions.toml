@@ -6,11 +6,11 @@ junitJupiter = "6.0.0"
 nullaway = "0.12.10"
 
 # Versions used in build-logic
-googleJavaFormat = "1.30.0"
+googleJavaFormat = "1.31.0"
 ktlint = "1.7.1"
 
 [libraries]
-caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.2"
+caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
 jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
