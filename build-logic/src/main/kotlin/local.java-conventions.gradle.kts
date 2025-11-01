@@ -43,6 +43,10 @@ tasks.withType<JavaCompile>().configureEach {
     options.release = java.sourceCompatibility.majorVersion.toInt()
     options.encoding = "UTF-8"
     options.compilerArgs.addAll(arrayOf("-Werror", "-Xlint:all,-fallthrough,-serial"))
+    if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_25)) {
+        // see https://github.com/uber/NullAway/wiki/JSpecify-Support#supported-jdk-versions
+        options.compilerArgs.add("-XDaddTypeAnnotationsToSymbol=true")
+    }
     options.errorprone {
         enable("DefaultLocale")
         nullaway {
