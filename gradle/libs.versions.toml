@@ -7,7 +7,7 @@ nullaway = "0.12.12"
 
 # Versions used in build-logic
 googleJavaFormat = "1.32.0"
-ktlint = "1.7.1"
+ktlint = "1.8.0"
 
 [libraries]
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
@@ -43,5 +43,5 @@ errorprone = [ "errorprone-core", "nullaway" ]
 errorprone = "net.ltgt.errorprone:4.3.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.4"
 nullaway = "net.ltgt.nullaway:2.3.0"
-spotless = "com.diffplug.spotless:8.0.0"
+spotless = "com.diffplug.spotless:8.1.0"
 vanniktechMavenPublish = "com.vanniktech.maven.publish:0.35.0"
