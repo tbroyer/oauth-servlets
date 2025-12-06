@@ -49,6 +49,7 @@ tasks.withType<JavaCompile>().configureEach {
     }
     options.errorprone {
         enable("DefaultLocale")
+        error("RequireExplicitNullMarking")
         nullaway {
             isJSpecifyMode = true
             knownInitializers.addAll(
