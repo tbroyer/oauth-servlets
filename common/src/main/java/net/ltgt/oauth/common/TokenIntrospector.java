@@ -38,8 +38,13 @@ public class TokenIntrospector {
   public static final int DEFAULT_MAX_CLOCK_SKEW_SECONDS =
       DefaultJWTClaimsVerifier.DEFAULT_MAX_CLOCK_SKEW_SECONDS;
 
+  private static ClientAuthenticationSupplier supplier(ClientAuthentication clientAuthentication) {
+    requireNonNull(clientAuthentication);
+    return () -> clientAuthentication;
+  }
+
   private final ReadOnlyAuthorizationServerMetadata authorizationServerMetadata;
-  private final ClientAuthentication clientAuthentication;
+  private final ClientAuthenticationSupplier clientAuthenticationSupplier;
   private final LoadingCache<BearerAccessToken, @Nullable TokenIntrospectionSuccessResponse> cache;
   private final @Nullable HTTPRequestSender httpRequestSender;
   private final int maxClockSkewSeconds;
@@ -48,9 +53,16 @@ public class TokenIntrospector {
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthentication clientAuthentication,
       Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
+    this(authorizationServerMetadata, supplier(clientAuthentication), cacheBuilder);
+  }
+
+  public TokenIntrospector(
+      ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
+      ClientAuthenticationSupplier clientAuthenticationSupplier,
+      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
     this(
         authorizationServerMetadata,
-        clientAuthentication,
+        clientAuthenticationSupplier,
         cacheBuilder,
         null,
         DEFAULT_MAX_CLOCK_SKEW_SECONDS);
@@ -63,7 +75,19 @@ public class TokenIntrospector {
       @Nullable HTTPRequestSender httpRequestSender) {
     this(
         authorizationServerMetadata,
-        clientAuthentication,
+        supplier(clientAuthentication),
+        cacheBuilder,
+        httpRequestSender);
+  }
+
+  public TokenIntrospector(
+      ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
+      ClientAuthenticationSupplier clientAuthenticationSupplier,
+      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      @Nullable HTTPRequestSender httpRequestSender) {
+    this(
+        authorizationServerMetadata,
+        clientAuthenticationSupplier,
         cacheBuilder,
         httpRequestSender,
         DEFAULT_MAX_CLOCK_SKEW_SECONDS);
@@ -75,7 +99,23 @@ public class TokenIntrospector {
       Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       int maxClockSkewSeconds) {
     this(
-        authorizationServerMetadata, clientAuthentication, cacheBuilder, null, maxClockSkewSeconds);
+        authorizationServerMetadata,
+        supplier(clientAuthentication),
+        cacheBuilder,
+        maxClockSkewSeconds);
+  }
+
+  public TokenIntrospector(
+      ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
+      ClientAuthenticationSupplier clientAuthenticationSupplier,
+      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      int maxClockSkewSeconds) {
+    this(
+        authorizationServerMetadata,
+        clientAuthenticationSupplier,
+        cacheBuilder,
+        null,
+        maxClockSkewSeconds);
   }
 
   public TokenIntrospector(
@@ -84,8 +124,22 @@ public class TokenIntrospector {
       Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender,
       int maxClockSkewSeconds) {
+    this(
+        authorizationServerMetadata,
+        supplier(clientAuthentication),
+        cacheBuilder,
+        httpRequestSender,
+        maxClockSkewSeconds);
+  }
+
+  public TokenIntrospector(
+      ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
+      ClientAuthenticationSupplier clientAuthenticationSupplier,
+      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      @Nullable HTTPRequestSender httpRequestSender,
+      int maxClockSkewSeconds) {
     this.authorizationServerMetadata = requireNonNull(authorizationServerMetadata);
-    this.clientAuthentication = requireNonNull(clientAuthentication);
+    this.clientAuthenticationSupplier = requireNonNull(clientAuthenticationSupplier);
     @SuppressWarnings("NullAway")
     var cache =
         cacheBuilder.<BearerAccessToken, @Nullable TokenIntrospectionSuccessResponse>build(
@@ -203,7 +257,7 @@ public class TokenIntrospector {
     var request =
         new TokenIntrospectionRequest(
             authorizationServerMetadata.getIntrospectionEndpointURI(),
-            clientAuthentication,
+            requireNonNull(clientAuthenticationSupplier.getClientAuthentication()),
             token,
             getTokenIntrospectionRequestCustomParams());
     var response = TokenIntrospectionResponse.parse(send(request));
