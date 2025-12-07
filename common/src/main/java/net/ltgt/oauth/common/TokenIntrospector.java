@@ -19,7 +19,7 @@ import com.nimbusds.oauth2.sdk.as.ReadOnlyAuthorizationServerMetadata;
 import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
 import com.nimbusds.oauth2.sdk.http.HTTPRequestSender;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
+import com.nimbusds.oauth2.sdk.token.AccessToken;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
@@ -28,8 +28,8 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Introspects {@linkplain BearerAccessToken bearer tokens} and keep introspection responses in a
- * cache to lower the pressure on the Authorization Server.
+ * Introspects {@linkplain AccessToken access tokens} and keep introspection responses in a cache to
+ * lower the pressure on the Authorization Server.
  *
  * @see <a href="https://www.rfc-editor.org/rfc/rfc7662.html">OAuth 2.0 Token Introspection</a>
  */
@@ -46,14 +46,14 @@ public class TokenIntrospector {
 
   private final URI introspectionEndpointURI;
   private final ClientAuthenticationSupplier clientAuthenticationSupplier;
-  private final LoadingCache<BearerAccessToken, @Nullable TokenIntrospectionSuccessResponse> cache;
+  private final LoadingCache<AccessToken, @Nullable TokenIntrospectionSuccessResponse> cache;
   private final @Nullable HTTPRequestSender httpRequestSender;
   private final int maxClockSkewSeconds;
 
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
     this(
         authorizationServerMetadata.getIntrospectionEndpointURI(),
         clientAuthentication,
@@ -63,14 +63,14 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
     this(introspectionEndpointURI, supplier(clientAuthentication), cacheBuilder);
   }
 
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
     this(
         authorizationServerMetadata.getIntrospectionEndpointURI(),
         clientAuthenticationSupplier,
@@ -80,7 +80,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder) {
     this(
         introspectionEndpointURI,
         clientAuthenticationSupplier,
@@ -92,7 +92,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender) {
     this(
         authorizationServerMetadata.getIntrospectionEndpointURI(),
@@ -104,7 +104,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender) {
     this(introspectionEndpointURI, supplier(clientAuthentication), cacheBuilder, httpRequestSender);
   }
@@ -112,7 +112,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender) {
     this(
         authorizationServerMetadata.getIntrospectionEndpointURI(),
@@ -124,7 +124,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender) {
     this(
         introspectionEndpointURI,
@@ -137,7 +137,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       int maxClockSkewSeconds) {
     this(
         authorizationServerMetadata.getIntrospectionEndpointURI(),
@@ -149,7 +149,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       int maxClockSkewSeconds) {
     this(
         introspectionEndpointURI,
@@ -161,7 +161,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       int maxClockSkewSeconds) {
     this(
         authorizationServerMetadata.getIntrospectionEndpointURI(),
@@ -173,7 +173,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       int maxClockSkewSeconds) {
     this(
         introspectionEndpointURI,
@@ -186,7 +186,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender,
       int maxClockSkewSeconds) {
     this(
@@ -200,7 +200,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthentication clientAuthentication,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender,
       int maxClockSkewSeconds) {
     this(
@@ -214,7 +214,7 @@ public class TokenIntrospector {
   public TokenIntrospector(
       ReadOnlyAuthorizationServerMetadata authorizationServerMetadata,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender,
       int maxClockSkewSeconds) {
     this(
@@ -228,25 +228,23 @@ public class TokenIntrospector {
   public TokenIntrospector(
       URI introspectionEndpointURI,
       ClientAuthenticationSupplier clientAuthenticationSupplier,
-      Caffeine<? super BearerAccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
+      Caffeine<? super AccessToken, ? super TokenIntrospectionSuccessResponse> cacheBuilder,
       @Nullable HTTPRequestSender httpRequestSender,
       int maxClockSkewSeconds) {
     this.introspectionEndpointURI = requireNonNull(introspectionEndpointURI);
     this.clientAuthenticationSupplier = requireNonNull(clientAuthenticationSupplier);
     @SuppressWarnings("NullAway")
     var cache =
-        cacheBuilder.<BearerAccessToken, @Nullable TokenIntrospectionSuccessResponse>build(
-            new CacheLoader<BearerAccessToken, @Nullable TokenIntrospectionSuccessResponse>() {
+        cacheBuilder.<AccessToken, @Nullable TokenIntrospectionSuccessResponse>build(
+            new CacheLoader<AccessToken, @Nullable TokenIntrospectionSuccessResponse>() {
               @Override
-              public TokenIntrospectionSuccessResponse load(BearerAccessToken key)
-                  throws Exception {
+              public TokenIntrospectionSuccessResponse load(AccessToken key) throws Exception {
                 return doIntrospect(key);
               }
 
               @Override
               public TokenIntrospectionSuccessResponse reload(
-                  BearerAccessToken key, TokenIntrospectionSuccessResponse oldValue)
-                  throws Exception {
+                  AccessToken key, TokenIntrospectionSuccessResponse oldValue) throws Exception {
                 if (!isValidToken(oldValue)) {
                   return oldValue;
                 }
@@ -272,7 +270,7 @@ public class TokenIntrospector {
    *
    * @see Cache#invalidate
    */
-  public void invalidate(BearerAccessToken token) {
+  public void invalidate(AccessToken token) {
     cache.invalidate(token);
   }
 
@@ -281,7 +279,7 @@ public class TokenIntrospector {
    *
    * @see Cache#invalidateAll(Iterable)
    */
-  public void invalidateAll(Iterable<? extends BearerAccessToken> tokens) {
+  public void invalidateAll(Iterable<? extends AccessToken> tokens) {
     cache.invalidateAll(tokens);
   }
 
@@ -311,7 +309,7 @@ public class TokenIntrospector {
    * TokenIntrospectionSuccessResponse#isActive() active} and to represent a valid token at the time
    * of the call.
    */
-  public @Nullable TokenIntrospectionSuccessResponse introspect(BearerAccessToken token) {
+  public @Nullable TokenIntrospectionSuccessResponse introspect(AccessToken token) {
     var response = cache.get(token);
     if (response == null || !isValidToken(response)) {
       return null;
@@ -345,7 +343,7 @@ public class TokenIntrospector {
     return true;
   }
 
-  private TokenIntrospectionSuccessResponse doIntrospect(BearerAccessToken token)
+  private TokenIntrospectionSuccessResponse doIntrospect(AccessToken token)
       throws IOException, ParseException {
     var request =
         new TokenIntrospectionRequest(
