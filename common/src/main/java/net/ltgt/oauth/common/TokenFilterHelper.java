@@ -2,6 +2,7 @@ package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
 
+import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
@@ -9,6 +10,7 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import java.io.IOException;
 import java.security.Principal;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
 
@@ -22,7 +24,10 @@ public abstract class TokenFilterHelper<E extends Exception> {
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);
   }
 
-  public void filter(@Nullable Principal principal, @Nullable String authorization)
+  public void filter(
+      @Nullable Principal principal,
+      @Nullable String authorization,
+      @Nullable X509Certificate clientCertificate)
       throws IOException, E {
     if (principal != null) {
       continueChain(null);
@@ -61,6 +66,22 @@ public abstract class TokenFilterHelper<E extends Exception> {
     if (introspectionResponse == null) {
       sendError(BearerTokenError.INVALID_TOKEN, "Invalid token", null);
       return;
+    }
+    var x509CertificateConfirmation = introspectionResponse.getX509CertificateConfirmation();
+    if (x509CertificateConfirmation != null) {
+      if (clientCertificate == null) {
+        sendError(BearerTokenError.INVALID_TOKEN, "No client certificate presented", null);
+        return;
+      }
+      if (!x509CertificateConfirmation
+          .getValue()
+          .equals(X509CertUtils.computeSHA256Thumbprint(clientCertificate))) {
+        sendError(
+            BearerTokenError.INVALID_TOKEN,
+            "Presented client certificate doesn't match sender-constrained access token",
+            null);
+        return;
+      }
     }
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
     continueChain(tokenPrincipal);

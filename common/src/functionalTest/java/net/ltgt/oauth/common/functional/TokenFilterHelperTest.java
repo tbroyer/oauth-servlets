@@ -71,7 +71,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, null);
+    sut.filter(null, null, null);
     assertThat(called.get()).isTrue();
   }
 
@@ -98,7 +98,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, clientAuthentication.toHTTPAuthorizationHeader());
+    sut.filter(null, clientAuthentication.toHTTPAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 
@@ -125,7 +125,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, "bearertoken");
+    sut.filter(null, "bearertoken", null);
     assertThat(called.get()).isTrue();
   }
 
@@ -152,7 +152,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, "bearer");
+    sut.filter(null, "bearer", null);
     assertThat(called.get()).isTrue();
   }
 
@@ -179,7 +179,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, "bearer ");
+    sut.filter(null, "bearer ", null);
     assertThat(called.get()).isTrue();
   }
 
@@ -206,7 +206,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, "bearer invalid");
+    sut.filter(null, "bearer invalid", null);
     assertThat(called.get()).isTrue();
   }
 
@@ -235,7 +235,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, client.get().toAuthorizationHeader());
+    sut.filter(null, client.get().toAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 
@@ -265,13 +265,13 @@ public class TokenFilterHelperTest {
         };
 
     var token = client.get();
-    sut.filter(null, token.toAuthorizationHeader());
+    sut.filter(null, token.toAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
 
     client.revoke(token);
 
     called.set(false);
-    sut.filter(null, token.toAuthorizationHeader());
+    sut.filter(null, token.toAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 
@@ -298,7 +298,7 @@ public class TokenFilterHelperTest {
           }
         };
 
-    sut.filter(null, client.get().toAuthorizationHeader());
+    sut.filter(null, client.get().toAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 }

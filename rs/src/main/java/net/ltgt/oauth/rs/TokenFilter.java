@@ -16,6 +16,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.security.Principal;
+import java.security.cert.X509Certificate;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
@@ -101,7 +102,8 @@ public class TokenFilter implements ContainerRequestFilter {
       }
     }.filter(
         requestContext.getSecurityContext().getUserPrincipal(),
-        requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION));
+        requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION),
+        getClientCertificate(requestContext));
   }
 
   @ForOverride
@@ -152,5 +154,14 @@ public class TokenFilter implements ContainerRequestFilter {
         return "Bearer";
       }
     };
+  }
+
+  private @Nullable X509Certificate getClientCertificate(ContainerRequestContext requestContext) {
+    if (requestContext.getProperty("jakarta.servlet.request.X509Certificate")
+            instanceof X509Certificate[] certs
+        && certs.length > 0) {
+      return certs[0];
+    }
+    return null;
   }
 }

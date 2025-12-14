@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
+import java.security.cert.X509Certificate;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -92,7 +93,7 @@ public class TokenFilter extends HttpFilter {
           throws IOException, ServletException {
         TokenFilter.this.sendError(res, statusCode, message, cause);
       }
-    }.filter(req.getUserPrincipal(), req.getHeader("Authorization"));
+    }.filter(req.getUserPrincipal(), req.getHeader("Authorization"), getClientCertificate(req));
   }
 
   @ForOverride
@@ -140,5 +141,14 @@ public class TokenFilter extends HttpFilter {
         return tokenPrincipal.hasRole(role);
       }
     };
+  }
+
+  private @Nullable X509Certificate getClientCertificate(HttpServletRequest req) {
+    if (req.getAttribute("jakarta.servlet.request.X509Certificate")
+            instanceof X509Certificate[] certs
+        && certs.length > 0) {
+      return certs[0];
+    }
+    return null;
   }
 }
