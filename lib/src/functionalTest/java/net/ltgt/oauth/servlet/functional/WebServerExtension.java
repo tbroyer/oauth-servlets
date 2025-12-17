@@ -9,6 +9,8 @@ import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.function.Consumer;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -36,6 +38,10 @@ public class WebServerExtension implements BeforeEachCallback, AfterEachCallback
 
   public ClientSecretBasic getClientAuthentication() {
     return clientAuthentication;
+  }
+
+  public URI getURI(String path) throws URISyntaxException {
+    return new URI("http", "localhost", path, null);
   }
 
   public HttpTester.Response getResponse(HttpTester.Request request) throws Exception {

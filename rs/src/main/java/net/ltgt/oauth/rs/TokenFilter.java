@@ -121,7 +121,7 @@ public class TokenFilter implements ContainerRequestFilter {
         requestContext.getMethod(),
         requestContext.getUriInfo().getAbsolutePath(),
         requestContext.getHeaders().getOrDefault(HttpHeaders.AUTHORIZATION, List.of()),
-        requestContext.getHeaders().getOrDefault("DPoP", List.of()),
+        requestContext.getHeaders().getOrDefault(TokenFilterHelper.DPOP_HEADER_NAME, List.of()),
         getClientCertificate(requestContext),
         new TokenFilterHelper.FilterChain<IOException>() {
 

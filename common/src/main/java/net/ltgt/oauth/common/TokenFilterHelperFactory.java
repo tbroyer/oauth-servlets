@@ -10,6 +10,9 @@ import com.google.errorprone.annotations.RestrictedApi;
  * JAX-RS {@code Configuration} property under the name {@link #CONTEXT_ATTRIBUTE_NAME}. If no such
  * instance is configured, {@code TokenFilter} will default to using {@link
  * BearerTokenFilterHelper#FACTORY}.
+ *
+ * @see BearerTokenFilterHelper#FACTORY
+ * @see DPoPTokenFilterHelper.Factory
  */
 public interface TokenFilterHelperFactory {
   String CONTEXT_ATTRIBUTE_NAME = TokenFilterHelperFactory.class.getName();

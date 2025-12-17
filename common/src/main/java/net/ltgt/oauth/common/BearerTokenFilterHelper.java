@@ -1,8 +1,9 @@
 package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
+import static net.ltgt.oauth.common.Utils.checkMTLSBoundToken;
+import static net.ltgt.oauth.common.Utils.matchesAuthenticationScheme;
 
-import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
@@ -54,8 +55,7 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
       return;
     }
     var authorization = authorizations.getFirst();
-    if (!authorization.regionMatches(true, 0, "bearer", 0, 6)
-        || (authorization.length() != 6 && authorization.charAt(6) != ' ')) {
+    if (!matchesAuthenticationScheme("bearer", authorization)) {
       chain.continueChain();
       return;
     }
@@ -89,22 +89,12 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
       chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), "Invalid token", null);
       return;
     }
-    var x509CertificateConfirmation = introspectionResponse.getX509CertificateConfirmation();
-    if (x509CertificateConfirmation != null) {
-      if (clientCertificate == null) {
-        chain.sendError(
-            List.of(BearerTokenError.INVALID_TOKEN), "No client certificate presented", null);
-        return;
-      }
-      if (!x509CertificateConfirmation
-          .getValue()
-          .equals(X509CertUtils.computeSHA256Thumbprint(clientCertificate))) {
-        chain.sendError(
-            List.of(BearerTokenError.INVALID_TOKEN),
-            "Presented client certificate doesn't match sender-constrained access token",
-            null);
-        return;
-      }
+    String errorMessage =
+        checkMTLSBoundToken(
+            introspectionResponse.getX509CertificateConfirmation(), clientCertificate);
+    if (errorMessage != null) {
+      chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), errorMessage, null);
+      return;
     }
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
     if (tokenPrincipal != null) {

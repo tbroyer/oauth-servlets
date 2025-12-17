@@ -12,6 +12,8 @@ import org.jspecify.annotations.Nullable;
 public interface TokenFilterHelper {
   String X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME = "jakarta.servlet.request.X509Certificate";
 
+  String DPOP_HEADER_NAME = "DPoP";
+
   @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
   List<TokenSchemeError> getUnauthorizedErrors();
 

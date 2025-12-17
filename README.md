@@ -51,11 +51,23 @@ servletContext.setAttribute(
 
 Custom implementations can also read additional data (e.g. from a database) to expose in their custom `TokenPrincipal`. If they can't afford doing it on each request, or would just rather do it once and _cache_ it for some time, they can extend `CachedTokenPrincipalProvider` or use it to wrap any existing `TokenPrincipalProvider`.
 
+### DPoP
+
+To accept DPoP tokens, register a `DPoPTokenFilterHelper.Factory` as a `ServletContext` attribute.
+
+```java
+var tokenFilterFactory = new DPoPTokenFilterHelper.Factory(/* … */);
+
+servletContext.setAttribute(TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME, tokenFilterFactory);
+```
+
+For now, DPoP nonces aren't used.
+
 ### Authorizations
 
-The `TokenFilter` will pass all requests down the filter chain (unless their `Authorization: Bearer` header is invalid or contains an invalid, expired or revoked token); it'll specifically chain down any request without an `Authorization` header. To enforce authorizations, add additional filters to check the `TokenPrincipal`:
+The `TokenFilter` will pass all requests down the filter chain (unless their `Authorization` header is invalid or contains an invalid, expired or revoked token); it'll specifically chain down any request without an `Authorization` header. To enforce authorizations, add additional filters to check the `TokenPrincipal`:
 
-* The `IsAuthenticatedFilter` for instance only checks that a `TokenPrincipal` is indeed present (i.e. the request must include an `Authorization: Bearer` header with a valid token).
+* The `IsAuthenticatedFilter` for instance only checks that a `TokenPrincipal` is indeed present (i.e. the request must include an `Authorization` header with a valid token).
 * The `HasRoleFilter` checks whether the user has a given role; this requires using a custom `TokenPrincipal` (if only a `KeycloakTokenPrincipal`).
 * The `HasScopeFilter` will also check whether the token has a given scope value, and will respond with an `insufficient_scope` error otherwise.
 

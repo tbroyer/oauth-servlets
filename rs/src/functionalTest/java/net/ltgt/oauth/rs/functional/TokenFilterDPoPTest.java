@@ -1,0 +1,300 @@
+package net.ltgt.oauth.rs.functional;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
+import com.nimbusds.oauth2.sdk.token.DPoPTokenError;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
+import java.util.Optional;
+import java.util.Set;
+import net.ltgt.oauth.common.DPoPTokenFilterHelper;
+import net.ltgt.oauth.common.TokenFilterHelper;
+import net.ltgt.oauth.common.TokenFilterHelperFactory;
+import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
+import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
+import org.jboss.resteasy.mock.MockHttpRequest;
+import org.jboss.resteasy.mock.MockHttpResponse;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+public class TokenFilterDPoPTest {
+  private static final Set<JWSAlgorithm> ALGS = Set.of(JWSAlgorithm.ES256, JWSAlgorithm.PS256);
+
+  @Path("/")
+  public static class TestResource {
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String get(@Context SecurityContext securityContext) {
+      return Optional.ofNullable(securityContext.getUserPrincipal())
+          .filter(TokenPrincipal.class::isInstance)
+          .map(TokenPrincipal.class::cast)
+          .map(tokenPrincipal -> tokenPrincipal.getTokenInfo().getUsername())
+          .orElse("null");
+    }
+  }
+
+  @RegisterExtension
+  public WebServerExtension server =
+      new WebServerExtension(
+          dispatcher -> {
+            dispatcher
+                .getProviderFactory()
+                .property(
+                    TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
+                    new DPoPTokenFilterHelper.Factory(ALGS, null));
+            dispatcher.getRegistry().addPerRequestResource(TestResource.class);
+          });
+
+  @RegisterExtension public DPoPTokenExtension client = new DPoPTokenExtension(JWSAlgorithm.ES256);
+
+  @Test
+  public void noAuthentication() throws Exception {
+    var request = MockHttpRequest.get("/");
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("null");
+  }
+
+  @Test
+  public void badAuthScheme() throws Exception {
+    var request =
+        MockHttpRequest.get("/")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                server.getClientAuthentication().toHTTPAuthorizationHeader());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("null");
+  }
+
+  @Test
+  public void badAuthScheme2() throws Exception {
+    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpoptoken");
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("null");
+  }
+
+  @Test
+  public void missingToken() throws Exception {
+    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpop");
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(DPoPTokenError.INVALID_REQUEST.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_REQUEST.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void missingToken2() throws Exception {
+    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpop ");
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(DPoPTokenError.INVALID_REQUEST.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_REQUEST.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void invalidToken() throws Exception {
+    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpop invalid");
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(
+                request.getHttpMethod(),
+                request.getUri().getAbsolutePath(),
+                new DPoPAccessToken("invalid"))
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(DPoPTokenError.INVALID_TOKEN.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_TOKEN.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void validToken() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+  }
+
+  @Test
+  public void invalidDPoPProof() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client.createDPoPJWT("POST", request.getUri().getAbsolutePath(), token).serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void missingDPoPProof() throws Exception {
+    var request =
+        MockHttpRequest.get("/")
+            .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void tooManyDPoPProofs() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+            .serialize());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void malformedDPoPProof() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(TokenFilterHelper.DPOP_HEADER_NAME, "malformed");
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void dpopProofMissingAccessTokenHash() throws Exception {
+    var request =
+        MockHttpRequest.get("/")
+            .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), null)
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void revokedButCachedToken() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+
+    client.revoke(token);
+
+    request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+            .serialize());
+    response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+  }
+
+  @Nested
+  class BearerInterop {
+    @RegisterExtension public BearerTokenExtension bearerClient = new BearerTokenExtension();
+
+    @Test
+    public void validBearerTokenUsedAsDPoP() throws Exception {
+      var token = bearerClient.get();
+      var request =
+          MockHttpRequest.get("/")
+              .header(
+                  HttpHeaders.AUTHORIZATION,
+                  new DPoPAccessToken(token.getValue()).toAuthorizationHeader());
+      request.header(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+              .serialize());
+      var response = new MockHttpResponse();
+      server.invoke(request, response);
+      assertThat(response.getStatus()).isEqualTo(DPoPTokenError.INVALID_TOKEN.getHTTPStatusCode());
+      var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+      assertThat(wwwAuthenticate).isInstanceOf(String.class);
+      assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+          .isEqualTo(DPoPTokenError.INVALID_TOKEN.setJWSAlgorithms(ALGS));
+    }
+  }
+}

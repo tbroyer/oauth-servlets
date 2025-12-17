@@ -56,11 +56,17 @@ Custom implementations can also read additional data (e.g. from a database) to e
 > [!NOTE]
 > If you use JAX-RS in a servlets environment, you can use the `TokenFilter` from [OAuth-Servlets](../README.md) instead of the one from OAuth-RS. It will setup the `HttpServletRequest`'s `getUserPrincipal()` with the same `TokenPrincipal`, that should be mirrored by the JAX-RS `SecurityContext`'s `getUserPrincipal()` so the two libraries can work hand-in-hand.
 
+### DPoP
+
+To accept DPoP tokens, register a `DPoPTokenFilterHelper.Factory` as a `Configuration` property.
+
+For now, DPoP nonces aren't used.
+
 ### Authorizations
 
-The `TokenFilter` will pass all requests down the filter chain (unless their `Authorization: Bearer` header is invalid or contains an invalid, expired or revoked token); it'll specifically chain down any request without an `Authorization` header. To enforce authorizations, add additional filters to check the `TokenPrincipal`:
+The _token filter_ will pass all requests down the filter chain (unless their `Authorization` header is invalid or contains an invalid, expired or revoked token); it'll specifically chain down any request without an `Authorization` header. To enforce authorizations, add additional filters to check the `TokenPrincipal`:
 
-* The `IsAuthenticatedFilter` for instance only checks that a `TokenPrincipal` is indeed present (i.e. the request must include an `Authorization: Bearer` header with a valid token). Annotate your application or resources with `@IsAuthenticated` to use bind this filter to your resources.
+* The `IsAuthenticatedFilter` for instance only checks that a `TokenPrincipal` is indeed present (i.e. the request must include an `Authorization` header with a valid token). Annotate your application or resources with `@IsAuthenticated` to use bind this filter to your resources.
 * The `HasRoleFilter` checks whether the user has a given role; this requires using a custom `TokenPrincipal` (if only a `KeycloakTokenPrincipal`). Register the `HasRoleFeature` and annotate your resources with `@HasRole()` to bind this filter to your resources. You can also create subclasses with a name binding; make sure to register them with a priority higher than `Priorities.AUTHENTICATION` (most likely `Priorities.AUTHORIZATION`).
 * The `HasScopeFilter` will also check whether the token has a given scope value, and will respond with an `insufficient_scope` error otherwise. Register the `HasScopeFeature` and annotate your resources with `@HasScope()` to bind this filter to your resources. You can also create subclasses with a name binding; make sure to register them with a priority higher than `Priorities.AUTHENTICATION` (most likely `Priorities.AUTHORIZATION`).
 

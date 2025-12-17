@@ -116,7 +116,7 @@ public class TokenFilter extends HttpFilter {
         req.getMethod(),
         URI.create(req.getRequestURL().toString()),
         Collections.list(req.getHeaders("Authorization")),
-        Collections.list(req.getHeaders("DPoP")),
+        Collections.list(req.getHeaders(TokenFilterHelper.DPOP_HEADER_NAME)),
         getClientCertificate(req),
         new TokenFilterHelper.FilterChain<ServletException>() {
 
