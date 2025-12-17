@@ -15,7 +15,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
 
-public abstract class TokenFilterHelper<E extends Exception> {
+public class TokenFilterHelper {
   public static final String X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME =
       "jakarta.servlet.request.X509Certificate";
 
@@ -23,25 +23,26 @@ public abstract class TokenFilterHelper<E extends Exception> {
   private final TokenPrincipalProvider tokenPrincipalProvider;
 
   @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
-  protected TokenFilterHelper(
+  public TokenFilterHelper(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);
   }
 
-  public void filter(
+  public <E extends Exception> void filter(
       @Nullable Principal principal,
       @Nullable String authorization,
-      @Nullable X509Certificate clientCertificate)
+      @Nullable X509Certificate clientCertificate,
+      FilterChain<E> chain)
       throws IOException, E {
     if (principal != null) {
-      continueChain(null);
+      chain.continueChain(null);
       return;
     }
     if (authorization == null
         || !authorization.regionMatches(true, 0, "bearer", 0, 6)
         || (authorization.length() != 6 && authorization.charAt(6) != ' ')) {
-      continueChain(null);
+      chain.continueChain(null);
       return;
     }
     BearerAccessToken token;
@@ -52,36 +53,36 @@ public abstract class TokenFilterHelper<E extends Exception> {
         // This should never happen, but just in case
         token = null;
       } else {
-        sendError(
+        chain.sendError(
             ((BearerTokenError) e.getErrorObject()), "Error parsing the Authorization header", e);
         return;
       }
     }
     if (token == null) {
-      continueChain(null);
+      chain.continueChain(null);
       return;
     }
     TokenIntrospectionSuccessResponse introspectionResponse;
     try {
       introspectionResponse = tokenIntrospector.introspect(token);
     } catch (CompletionException e) {
-      sendError(HTTPResponse.SC_SERVER_ERROR, "Error introspecting token", e.getCause());
+      chain.sendError(HTTPResponse.SC_SERVER_ERROR, "Error introspecting token", e.getCause());
       return;
     }
     if (introspectionResponse == null) {
-      sendError(BearerTokenError.INVALID_TOKEN, "Invalid token", null);
+      chain.sendError(BearerTokenError.INVALID_TOKEN, "Invalid token", null);
       return;
     }
     var x509CertificateConfirmation = introspectionResponse.getX509CertificateConfirmation();
     if (x509CertificateConfirmation != null) {
       if (clientCertificate == null) {
-        sendError(BearerTokenError.INVALID_TOKEN, "No client certificate presented", null);
+        chain.sendError(BearerTokenError.INVALID_TOKEN, "No client certificate presented", null);
         return;
       }
       if (!x509CertificateConfirmation
           .getValue()
           .equals(X509CertUtils.computeSHA256Thumbprint(clientCertificate))) {
-        sendError(
+        chain.sendError(
             BearerTokenError.INVALID_TOKEN,
             "Presented client certificate doesn't match sender-constrained access token",
             null);
@@ -89,15 +90,15 @@ public abstract class TokenFilterHelper<E extends Exception> {
       }
     }
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
-    continueChain(tokenPrincipal);
+    chain.continueChain(tokenPrincipal);
   }
 
-  protected abstract void continueChain(@Nullable TokenPrincipal tokenPrincipal)
-      throws IOException, E;
+  public interface FilterChain<E extends Exception> {
+    void continueChain(@Nullable TokenPrincipal tokenPrincipal) throws IOException, E;
 
-  protected abstract void sendError(
-      BearerTokenError error, String message, @Nullable Throwable cause) throws IOException, E;
+    void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
+        throws IOException, E;
 
-  protected abstract void sendError(int statusCode, String message, @Nullable Throwable cause)
-      throws IOException, E;
+    void sendError(int statusCode, String message, @Nullable Throwable cause) throws IOException, E;
+  }
 }

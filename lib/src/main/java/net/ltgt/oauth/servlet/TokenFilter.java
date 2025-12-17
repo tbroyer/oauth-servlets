@@ -37,6 +37,7 @@ import org.jspecify.annotations.Nullable;
 public class TokenFilter extends HttpFilter {
   private TokenIntrospector tokenIntrospector;
   private TokenPrincipalProvider tokenPrincipalProvider;
+  private TokenFilterHelper tokenFilterHelper;
 
   public TokenFilter() {}
 
@@ -69,31 +70,36 @@ public class TokenFilter extends HttpFilter {
     if (tokenPrincipalProvider == null) {
       tokenPrincipalProvider = SimpleTokenPrincipal.PROVIDER;
     }
+    this.tokenFilterHelper = new TokenFilterHelper(tokenIntrospector, tokenPrincipalProvider);
   }
 
   @Override
   protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
-    new TokenFilterHelper<ServletException>(tokenIntrospector, tokenPrincipalProvider) {
+    tokenFilterHelper.filter(
+        req.getUserPrincipal(),
+        req.getHeader("Authorization"),
+        getClientCertificate(req),
+        new TokenFilterHelper.FilterChain<ServletException>() {
 
-      @Override
-      protected void continueChain(@Nullable TokenPrincipal tokenPrincipal)
-          throws IOException, ServletException {
-        chain.doFilter(tokenPrincipal != null ? wrapRequest(req, tokenPrincipal) : req, res);
-      }
+          @Override
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal)
+              throws IOException, ServletException {
+            chain.doFilter(tokenPrincipal != null ? wrapRequest(req, tokenPrincipal) : req, res);
+          }
 
-      @Override
-      protected void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
-          throws IOException, ServletException {
-        TokenFilter.this.sendError(res, error, message, cause);
-      }
+          @Override
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
+              throws IOException, ServletException {
+            TokenFilter.this.sendError(res, error, message, cause);
+          }
 
-      @Override
-      protected void sendError(int statusCode, String message, @Nullable Throwable cause)
-          throws IOException, ServletException {
-        TokenFilter.this.sendError(res, statusCode, message, cause);
-      }
-    }.filter(req.getUserPrincipal(), req.getHeader("Authorization"), getClientCertificate(req));
+          @Override
+          public void sendError(int statusCode, String message, @Nullable Throwable cause)
+              throws IOException, ServletException {
+            TokenFilter.this.sendError(res, statusCode, message, cause);
+          }
+        });
   }
 
   @ForOverride

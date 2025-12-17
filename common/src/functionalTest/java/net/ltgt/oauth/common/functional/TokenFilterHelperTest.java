@@ -51,172 +51,195 @@ public class TokenFilterHelperTest {
   @Test
   public void noAuthentication() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        null,
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             called.set(true);
             assertThat(tokenPrincipal).isNull();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             fail();
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, null, null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void badAuthScheme() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        clientAuthentication.toHTTPAuthorizationHeader(),
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             called.set(true);
             assertThat(tokenPrincipal).isNull();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             fail();
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, clientAuthentication.toHTTPAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void badAuthScheme2() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        "bearertoken",
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             called.set(true);
             assertThat(tokenPrincipal).isNull();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             fail();
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, "bearertoken", null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void missingToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        "bearer",
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             fail();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             called.set(true);
             assertThat(error).isEqualTo(BearerTokenError.INVALID_REQUEST);
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, "bearer", null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void missingToken2() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        "bearer ",
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             fail();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             called.set(true);
             assertThat(error).isEqualTo(BearerTokenError.INVALID_REQUEST);
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, "bearer ", null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void invalidToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        "bearer invalid",
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             fail();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             called.set(true);
             assertThat(error).isEqualTo(BearerTokenError.INVALID_TOKEN);
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, "bearer invalid", null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void validToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        null,
+        client.get().toAuthorizationHeader(),
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             called.set(true);
             assertThat(tokenPrincipal).isNotNull();
             assertThat(requireNonNull(tokenPrincipal).getTokenInfo().getUsername())
@@ -224,28 +247,27 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             fail();
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, client.get().toAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void revokedButCachedToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER) {
+    var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var chain =
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             called.set(true);
             assertThat(tokenPrincipal).isNotNull();
             assertThat(requireNonNull(tokenPrincipal).getTokenInfo().getUsername())
@@ -253,52 +275,55 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             fail();
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
         };
 
     var token = client.get();
-    sut.filter(null, token.toAuthorizationHeader(), null);
+    sut.filter(null, token.toAuthorizationHeader(), null, chain);
     assertThat(called.get()).isTrue();
 
     client.revoke(token);
 
     called.set(false);
-    sut.filter(null, token.toAuthorizationHeader(), null);
+    sut.filter(null, token.toAuthorizationHeader(), null, chain);
+
     assertThat(called.get()).isTrue();
   }
 
   @Test
   public void validTokenNoTokenPrincipal() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        new TokenFilterHelper<>(tokenIntrospector, ignored -> null) {
+    var sut = new TokenFilterHelper(tokenIntrospector, ignored -> null);
+
+    sut.filter(
+        null,
+        client.get().toAuthorizationHeader(),
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
             called.set(true);
             assertThat(tokenPrincipal).isNull();
           }
 
           @Override
-          protected void sendError(
-              BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
             fail();
           }
 
           @Override
-          protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
             fail();
           }
-        };
+        });
 
-    sut.filter(null, client.get().toAuthorizationHeader(), null);
     assertThat(called.get()).isTrue();
   }
 }

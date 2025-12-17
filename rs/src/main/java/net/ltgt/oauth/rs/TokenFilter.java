@@ -87,28 +87,31 @@ public class TokenFilter implements ContainerRequestFilter {
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    new TokenFilterHelper<IOException>(getTokenIntrospector(), getTokenPrincipalProvider()) {
-      @Override
-      protected void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
-        if (tokenPrincipal != null) {
-          requestContext.setSecurityContext(
-              wrapSecurityContext(requestContext.getSecurityContext(), tokenPrincipal));
-        }
-      }
+    new TokenFilterHelper(getTokenIntrospector(), getTokenPrincipalProvider())
+        .filter(
+            requestContext.getSecurityContext().getUserPrincipal(),
+            requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION),
+            getClientCertificate(requestContext),
+            new TokenFilterHelper.FilterChain<IOException>() {
+              @Override
+              public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+                if (tokenPrincipal != null) {
+                  requestContext.setSecurityContext(
+                      wrapSecurityContext(requestContext.getSecurityContext(), tokenPrincipal));
+                }
+              }
 
-      @Override
-      protected void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
-        requestContext.abortWith(createErrorResponse(error, message, cause));
-      }
+              @Override
+              public void sendError(
+                  BearerTokenError error, String message, @Nullable Throwable cause) {
+                requestContext.abortWith(createErrorResponse(error, message, cause));
+              }
 
-      @Override
-      protected void sendError(int statusCode, String message, @Nullable Throwable cause) {
-        requestContext.abortWith(createErrorResponse(statusCode, message, cause));
-      }
-    }.filter(
-        requestContext.getSecurityContext().getUserPrincipal(),
-        requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION),
-        getClientCertificate(requestContext));
+              @Override
+              public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+                requestContext.abortWith(createErrorResponse(statusCode, message, cause));
+              }
+            });
   }
 
   @ForOverride
