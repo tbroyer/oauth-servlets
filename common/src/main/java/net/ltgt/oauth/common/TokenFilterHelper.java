@@ -2,6 +2,7 @@ package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
 
+import com.google.errorprone.annotations.RestrictedApi;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
@@ -21,6 +22,7 @@ public abstract class TokenFilterHelper<E extends Exception> {
   private final TokenIntrospector tokenIntrospector;
   private final TokenPrincipalProvider tokenPrincipalProvider;
 
+  @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
   protected TokenFilterHelper(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
