@@ -76,8 +76,11 @@ public class TokenFilter extends HttpFilter {
   @Override
   protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
+    if (req.getUserPrincipal() != null) {
+      chain.doFilter(req, res);
+      return;
+    }
     tokenFilterHelper.filter(
-        req.getUserPrincipal(),
         req.getHeader("Authorization"),
         getClientCertificate(req),
         new TokenFilterHelper.FilterChain<ServletException>() {

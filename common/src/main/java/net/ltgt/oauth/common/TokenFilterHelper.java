@@ -10,7 +10,6 @@ import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import java.io.IOException;
-import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
@@ -30,15 +29,10 @@ public class TokenFilterHelper {
   }
 
   public <E extends Exception> void filter(
-      @Nullable Principal principal,
       @Nullable String authorization,
       @Nullable X509Certificate clientCertificate,
       FilterChain<E> chain)
       throws IOException, E {
-    if (principal != null) {
-      chain.continueChain(null);
-      return;
-    }
     if (authorization == null
         || !authorization.regionMatches(true, 0, "bearer", 0, 6)
         || (authorization.length() != 6 && authorization.charAt(6) != ' ')) {

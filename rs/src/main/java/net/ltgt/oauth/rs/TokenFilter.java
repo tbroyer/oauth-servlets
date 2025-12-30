@@ -87,9 +87,11 @@ public class TokenFilter implements ContainerRequestFilter {
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
+    if (requestContext.getSecurityContext().getUserPrincipal() != null) {
+      return;
+    }
     new TokenFilterHelper(getTokenIntrospector(), getTokenPrincipalProvider())
         .filter(
-            requestContext.getSecurityContext().getUserPrincipal(),
             requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION),
             getClientCertificate(requestContext),
             new TokenFilterHelper.FilterChain<IOException>() {

@@ -56,7 +56,6 @@ public class TokenFilterHelperTest {
     sut.filter(
         null,
         null,
-        null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
           public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
@@ -84,7 +83,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
         clientAuthentication.toHTTPAuthorizationHeader(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
@@ -114,7 +112,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
         "bearertoken",
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
@@ -144,7 +141,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
         "bearer",
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
@@ -174,7 +170,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
         "bearer ",
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
@@ -204,7 +199,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
         "bearer invalid",
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
@@ -234,7 +228,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
         client.get().toAuthorizationHeader(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
@@ -286,13 +279,13 @@ public class TokenFilterHelperTest {
         };
 
     var token = client.get();
-    sut.filter(null, token.toAuthorizationHeader(), null, chain);
+    sut.filter(token.toAuthorizationHeader(), null, chain);
     assertThat(called.get()).isTrue();
 
     client.revoke(token);
 
     called.set(false);
-    sut.filter(null, token.toAuthorizationHeader(), null, chain);
+    sut.filter(token.toAuthorizationHeader(), null, chain);
 
     assertThat(called.get()).isTrue();
   }
@@ -303,7 +296,6 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, ignored -> null);
 
     sut.filter(
-        null,
         client.get().toAuthorizationHeader(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
