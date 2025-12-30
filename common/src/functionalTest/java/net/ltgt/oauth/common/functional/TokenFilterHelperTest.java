@@ -12,6 +12,7 @@ import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
@@ -27,6 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TokenFilterHelperTest {
+
+  private static final String REQUEST_METHOD = "GET";
+  private static final URI REQUEST_URI = URI.create("http://localhost/api");
 
   private static ReadOnlyAuthorizationServerMetadata authorizationServerMetadata;
   private static ClientSecretBasic clientAuthentication;
@@ -57,7 +61,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        null,
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -91,7 +98,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        clientAuthentication.toHTTPAuthorizationHeader(),
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(clientAuthentication.toHTTPAuthorizationHeader()),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -125,7 +135,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        "bearertoken",
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of("bearertoken"),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -159,7 +172,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        "bearer",
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of("bearer"),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -194,7 +210,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        "bearer ",
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of("bearer "),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -229,7 +248,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        "bearer invalid",
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of("bearer invalid"),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -264,7 +286,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
-        client.get().toAuthorizationHeader(),
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(client.get().toAuthorizationHeader()),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -327,13 +352,25 @@ public class TokenFilterHelperTest {
         };
 
     var token = client.get();
-    sut.filter(token.toAuthorizationHeader(), null, chain);
+    sut.filter(
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(token.toAuthorizationHeader()),
+        List.of(),
+        null,
+        chain);
     assertThat(called.get()).isTrue();
 
     client.revoke(token);
 
     called.set(false);
-    sut.filter(token.toAuthorizationHeader(), null, chain);
+    sut.filter(
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(token.toAuthorizationHeader()),
+        List.of(),
+        null,
+        chain);
 
     assertThat(called.get()).isTrue();
   }
@@ -344,7 +381,10 @@ public class TokenFilterHelperTest {
     var sut = new TokenFilterHelper(tokenIntrospector, ignored -> null);
 
     sut.filter(
-        client.get().toAuthorizationHeader(),
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(client.get().toAuthorizationHeader()),
+        List.of(),
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override

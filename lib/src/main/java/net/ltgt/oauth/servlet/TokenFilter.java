@@ -12,8 +12,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URI;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.List;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
@@ -82,7 +84,10 @@ public class TokenFilter extends HttpFilter {
       return;
     }
     tokenFilterHelper.filter(
-        req.getHeader("Authorization"),
+        req.getMethod(),
+        URI.create(req.getRequestURL().toString()),
+        Collections.list(req.getHeaders("Authorization")),
+        Collections.list(req.getHeaders("DPoP")),
         getClientCertificate(req),
         new TokenFilterHelper.FilterChain<ServletException>() {
 

@@ -93,7 +93,10 @@ public class TokenFilter implements ContainerRequestFilter {
     }
     new TokenFilterHelper(getTokenIntrospector(), getTokenPrincipalProvider())
         .filter(
-            requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION),
+            requestContext.getMethod(),
+            requestContext.getUriInfo().getAbsolutePath(),
+            requestContext.getHeaders().getOrDefault(HttpHeaders.AUTHORIZATION, List.of()),
+            requestContext.getHeaders().getOrDefault("DPoP", List.of()),
             getClientCertificate(requestContext),
             new TokenFilterHelper.FilterChain<IOException>() {
 

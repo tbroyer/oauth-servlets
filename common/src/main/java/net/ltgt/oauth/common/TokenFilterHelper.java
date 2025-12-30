@@ -12,6 +12,7 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import java.io.IOException;
+import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -32,12 +33,19 @@ public class TokenFilterHelper {
   }
 
   public <E extends Exception> void filter(
-      @Nullable String authorization,
+      String method,
+      URI uri,
+      List<String> authorizations,
+      List<String> dpopProofs,
       @Nullable X509Certificate clientCertificate,
       FilterChain<E> chain)
       throws IOException, E {
-    if (authorization == null
-        || !authorization.regionMatches(true, 0, "bearer", 0, 6)
+    if (authorizations.isEmpty()) {
+      chain.continueChain();
+      return;
+    }
+    var authorization = authorizations.getFirst();
+    if (!authorization.regionMatches(true, 0, "bearer", 0, 6)
         || (authorization.length() != 6 && authorization.charAt(6) != ' ')) {
       chain.continueChain();
       return;
