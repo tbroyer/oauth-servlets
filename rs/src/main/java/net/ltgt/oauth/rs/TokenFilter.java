@@ -3,7 +3,7 @@ package net.ltgt.oauth.rs;
 import static java.util.Objects.requireNonNull;
 
 import com.google.errorprone.annotations.ForOverride;
-import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -17,6 +17,7 @@ import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -109,8 +110,8 @@ public class TokenFilter implements ContainerRequestFilter {
 
               @Override
               public void sendError(
-                  BearerTokenError error, String message, @Nullable Throwable cause) {
-                requestContext.abortWith(createErrorResponse(error, message, cause));
+                  List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+                requestContext.abortWith(createErrorResponse(errors, message, cause));
               }
 
               @Override
@@ -122,13 +123,15 @@ public class TokenFilter implements ContainerRequestFilter {
 
   @ForOverride
   protected Response createErrorResponse(
-      BearerTokenError error, String message, @Nullable Throwable cause) {
+      List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
     if (cause != null) {
       log(message, cause);
     }
-    return Response.status(error.getHTTPStatusCode())
-        .header(HttpHeaders.WWW_AUTHENTICATE, error.toWWWAuthenticateHeader())
-        .build();
+    var rb = Response.status(errors.getFirst().getHTTPStatusCode());
+    for (var error : errors) {
+      rb.header(HttpHeaders.WWW_AUTHENTICATE, error.toWWWAuthenticateHeader());
+    }
+    return rb.build();
   }
 
   @ForOverride

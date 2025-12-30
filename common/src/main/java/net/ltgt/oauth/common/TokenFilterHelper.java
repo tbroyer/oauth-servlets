@@ -10,8 +10,10 @@ import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
 
@@ -49,7 +51,9 @@ public class TokenFilterHelper {
         token = null;
       } else {
         chain.sendError(
-            ((BearerTokenError) e.getErrorObject()), "Error parsing the Authorization header", e);
+            List.of((BearerTokenError) e.getErrorObject()),
+            "Error parsing the Authorization header",
+            e);
         return;
       }
     }
@@ -65,20 +69,21 @@ public class TokenFilterHelper {
       return;
     }
     if (introspectionResponse == null) {
-      chain.sendError(BearerTokenError.INVALID_TOKEN, "Invalid token", null);
+      chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), "Invalid token", null);
       return;
     }
     var x509CertificateConfirmation = introspectionResponse.getX509CertificateConfirmation();
     if (x509CertificateConfirmation != null) {
       if (clientCertificate == null) {
-        chain.sendError(BearerTokenError.INVALID_TOKEN, "No client certificate presented", null);
+        chain.sendError(
+            List.of(BearerTokenError.INVALID_TOKEN), "No client certificate presented", null);
         return;
       }
       if (!x509CertificateConfirmation
           .getValue()
           .equals(X509CertUtils.computeSHA256Thumbprint(clientCertificate))) {
         chain.sendError(
-            BearerTokenError.INVALID_TOKEN,
+            List.of(BearerTokenError.INVALID_TOKEN),
             "Presented client certificate doesn't match sender-constrained access token",
             null);
         return;
@@ -98,7 +103,7 @@ public class TokenFilterHelper {
     void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal)
         throws IOException, E;
 
-    void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
+    void sendError(List<TokenSchemeError> errors, String message, @Nullable Throwable cause)
         throws IOException, E;
 
     void sendError(int statusCode, String message, @Nullable Throwable cause) throws IOException, E;

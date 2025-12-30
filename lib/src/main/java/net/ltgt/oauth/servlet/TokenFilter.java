@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.errorprone.annotations.ForOverride;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
-import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -97,9 +98,10 @@ public class TokenFilter extends HttpFilter {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause)
               throws IOException, ServletException {
-            TokenFilter.this.sendError(res, error, message, cause);
+            TokenFilter.this.sendError(res, errors, message, cause);
           }
 
           @Override
@@ -112,14 +114,19 @@ public class TokenFilter extends HttpFilter {
 
   @ForOverride
   protected void sendError(
-      HttpServletResponse res, BearerTokenError error, String message, @Nullable Throwable cause)
+      HttpServletResponse res,
+      List<TokenSchemeError> errors,
+      String message,
+      @Nullable Throwable cause)
       throws IOException, ServletException {
     if (cause != null) {
       log(message, cause);
     }
     res.reset();
-    res.setStatus(error.getHTTPStatusCode());
-    res.addHeader("WWW-Authenticate", error.toWWWAuthenticateHeader());
+    res.setStatus(errors.getFirst().getHTTPStatusCode());
+    for (var error : errors) {
+      res.addHeader("WWW-Authenticate", error.toWWWAuthenticateHeader());
+    }
   }
 
   @ForOverride

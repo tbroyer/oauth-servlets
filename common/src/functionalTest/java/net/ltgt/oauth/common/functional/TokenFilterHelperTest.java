@@ -11,6 +11,8 @@ import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
@@ -69,7 +71,8 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             fail();
           }
 
@@ -102,7 +105,8 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             fail();
           }
 
@@ -135,7 +139,8 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             fail();
           }
 
@@ -168,9 +173,10 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             called.set(true);
-            assertThat(error).isEqualTo(BearerTokenError.INVALID_REQUEST);
+            assertThat(errors).containsExactly(BearerTokenError.INVALID_REQUEST);
           }
 
           @Override
@@ -202,9 +208,10 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             called.set(true);
-            assertThat(error).isEqualTo(BearerTokenError.INVALID_REQUEST);
+            assertThat(errors).containsExactly(BearerTokenError.INVALID_REQUEST);
           }
 
           @Override
@@ -236,9 +243,10 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             called.set(true);
-            assertThat(error).isEqualTo(BearerTokenError.INVALID_TOKEN);
+            assertThat(errors).containsExactly(BearerTokenError.INVALID_TOKEN);
           }
 
           @Override
@@ -273,7 +281,8 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             fail();
           }
 
@@ -306,7 +315,8 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             fail();
           }
 
@@ -348,7 +358,8 @@ public class TokenFilterHelperTest {
           }
 
           @Override
-          public void sendError(BearerTokenError error, String message, @Nullable Throwable cause) {
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
             fail();
           }
 
