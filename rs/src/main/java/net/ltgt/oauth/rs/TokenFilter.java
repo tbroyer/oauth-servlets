@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -91,7 +92,7 @@ public class TokenFilter implements ContainerRequestFilter {
     if (requestContext.getSecurityContext().getUserPrincipal() != null) {
       return;
     }
-    new TokenFilterHelper(getTokenIntrospector(), getTokenPrincipalProvider())
+    new BearerTokenFilterHelper(getTokenIntrospector(), getTokenPrincipalProvider())
         .filter(
             requestContext.getMethod(),
             requestContext.getUriInfo().getAbsolutePath(),

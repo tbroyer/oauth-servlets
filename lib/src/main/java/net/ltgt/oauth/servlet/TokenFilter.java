@@ -17,6 +17,7 @@ import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -73,7 +74,7 @@ public class TokenFilter extends HttpFilter {
     if (tokenPrincipalProvider == null) {
       tokenPrincipalProvider = SimpleTokenPrincipal.PROVIDER;
     }
-    this.tokenFilterHelper = new TokenFilterHelper(tokenIntrospector, tokenPrincipalProvider);
+    this.tokenFilterHelper = new BearerTokenFilterHelper(tokenIntrospector, tokenPrincipalProvider);
   }
 
   @Override
