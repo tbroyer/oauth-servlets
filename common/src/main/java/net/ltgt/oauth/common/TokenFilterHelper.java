@@ -7,6 +7,7 @@ import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class TokenFilterHelper {
     if (authorization == null
         || !authorization.regionMatches(true, 0, "bearer", 0, 6)
         || (authorization.length() != 6 && authorization.charAt(6) != ' ')) {
-      chain.continueChain(null);
+      chain.continueChain();
       return;
     }
     BearerAccessToken token;
@@ -53,7 +54,7 @@ public class TokenFilterHelper {
       }
     }
     if (token == null) {
-      chain.continueChain(null);
+      chain.continueChain();
       return;
     }
     TokenIntrospectionSuccessResponse introspectionResponse;
@@ -84,11 +85,18 @@ public class TokenFilterHelper {
       }
     }
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
-    chain.continueChain(tokenPrincipal);
+    if (tokenPrincipal != null) {
+      chain.continueChain(AccessTokenType.BEARER.getValue(), tokenPrincipal);
+    } else {
+      chain.continueChain();
+    }
   }
 
   public interface FilterChain<E extends Exception> {
-    void continueChain(@Nullable TokenPrincipal tokenPrincipal) throws IOException, E;
+    void continueChain() throws IOException, E;
+
+    void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal)
+        throws IOException, E;
 
     void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
         throws IOException, E;

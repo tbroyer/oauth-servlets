@@ -95,12 +95,16 @@ public class TokenFilter implements ContainerRequestFilter {
             requestContext.getHeaders().getFirst(HttpHeaders.AUTHORIZATION),
             getClientCertificate(requestContext),
             new TokenFilterHelper.FilterChain<IOException>() {
+
               @Override
-              public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
-                if (tokenPrincipal != null) {
-                  requestContext.setSecurityContext(
-                      wrapSecurityContext(requestContext.getSecurityContext(), tokenPrincipal));
-                }
+              public void continueChain() {}
+
+              @Override
+              public void continueChain(
+                  String authenticationScheme, TokenPrincipal tokenPrincipal) {
+                requestContext.setSecurityContext(
+                    wrapSecurityContext(
+                        requestContext.getSecurityContext(), authenticationScheme, tokenPrincipal));
               }
 
               @Override
@@ -142,7 +146,7 @@ public class TokenFilter implements ContainerRequestFilter {
   }
 
   private SecurityContext wrapSecurityContext(
-      SecurityContext securityContext, TokenPrincipal tokenPrincipal) {
+      SecurityContext securityContext, String authenticationScheme, TokenPrincipal tokenPrincipal) {
     return new SecurityContext() {
       @Override
       public Principal getUserPrincipal() {
@@ -161,7 +165,7 @@ public class TokenFilter implements ContainerRequestFilter {
 
       @Override
       public String getAuthenticationScheme() {
-        return "Bearer";
+        return authenticationScheme;
       }
     };
   }

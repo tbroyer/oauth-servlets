@@ -86,9 +86,14 @@ public class TokenFilter extends HttpFilter {
         new TokenFilterHelper.FilterChain<ServletException>() {
 
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal)
+          public void continueChain() throws IOException, ServletException {
+            chain.doFilter(req, res);
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal)
               throws IOException, ServletException {
-            chain.doFilter(tokenPrincipal != null ? wrapRequest(req, tokenPrincipal) : req, res);
+            chain.doFilter(wrapRequest(req, authenticationScheme, tokenPrincipal), res);
           }
 
           @Override
@@ -133,11 +138,12 @@ public class TokenFilter extends HttpFilter {
     getServletContext().log(getFilterName() + ": " + message, cause);
   }
 
-  private HttpServletRequest wrapRequest(HttpServletRequest req, TokenPrincipal tokenPrincipal) {
+  private HttpServletRequest wrapRequest(
+      HttpServletRequest req, String authenticationScheme, TokenPrincipal tokenPrincipal) {
     return new HttpServletRequestWrapper(req) {
       @Override
       public String getAuthType() {
-        return "Bearer";
+        return authenticationScheme;
       }
 
       @Override

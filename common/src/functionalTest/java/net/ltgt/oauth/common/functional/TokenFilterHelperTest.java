@@ -9,6 +9,7 @@ import com.nimbusds.oauth2.sdk.as.ReadOnlyAuthorizationServerMetadata;
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
 import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
+import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
@@ -58,9 +59,13 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
             called.set(true);
-            assertThat(tokenPrincipal).isNull();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            fail();
           }
 
           @Override
@@ -87,9 +92,13 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
             called.set(true);
-            assertThat(tokenPrincipal).isNull();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            fail();
           }
 
           @Override
@@ -116,9 +125,13 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
             called.set(true);
-            assertThat(tokenPrincipal).isNull();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            fail();
           }
 
           @Override
@@ -145,7 +158,12 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
             fail();
           }
 
@@ -174,7 +192,12 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
             fail();
           }
 
@@ -203,7 +226,12 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
             fail();
           }
 
@@ -232,10 +260,15 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
             called.set(true);
-            assertThat(tokenPrincipal).isNotNull();
-            assertThat(requireNonNull(tokenPrincipal).getTokenInfo().getUsername())
+            assertThat(authenticationScheme).isEqualTo(AccessTokenType.BEARER.getValue());
+            assertThat(tokenPrincipal.getTokenInfo().getUsername())
                 .isEqualTo("service-account-app");
           }
 
@@ -260,10 +293,15 @@ public class TokenFilterHelperTest {
     var chain =
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
             called.set(true);
-            assertThat(tokenPrincipal).isNotNull();
-            assertThat(requireNonNull(tokenPrincipal).getTokenInfo().getUsername())
+            assertThat(authenticationScheme).isEqualTo(AccessTokenType.BEARER.getValue());
+            assertThat(tokenPrincipal.getTokenInfo().getUsername())
                 .isEqualTo("service-account-app");
           }
 
@@ -300,9 +338,13 @@ public class TokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain(@Nullable TokenPrincipal tokenPrincipal) {
+          public void continueChain() {
             called.set(true);
-            assertThat(tokenPrincipal).isNull();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            fail();
           }
 
           @Override
