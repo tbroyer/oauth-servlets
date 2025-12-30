@@ -127,6 +127,11 @@ public class TokenFilter extends HttpFilter {
   private HttpServletRequest wrapRequest(HttpServletRequest req, TokenPrincipal tokenPrincipal) {
     return new HttpServletRequestWrapper(req) {
       @Override
+      public String getAuthType() {
+        return "Bearer";
+      }
+
+      @Override
       public String getRemoteUser() {
         return tokenPrincipal.getName();
       }
