@@ -17,6 +17,7 @@ import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
@@ -74,10 +75,14 @@ public class TokenFilter implements ContainerRequestFilter {
    */
   @ForOverride
   protected TokenPrincipalProvider getTokenPrincipalProvider() {
-    return (TokenPrincipalProvider)
-        requireNonNull(
+    var tokenPrincipalProvider =
+        (TokenPrincipalProvider)
             requireNonNull(configuration)
-                .getProperty(TokenPrincipalProvider.CONTEXT_ATTRIBUTE_NAME));
+                .getProperty(TokenPrincipalProvider.CONTEXT_ATTRIBUTE_NAME);
+    if (tokenPrincipalProvider == null) {
+      return SimpleTokenPrincipal.PROVIDER;
+    }
+    return tokenPrincipalProvider;
   }
 
   @Override
