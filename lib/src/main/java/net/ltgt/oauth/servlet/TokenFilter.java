@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
+import net.ltgt.oauth.common.TokenErrorHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -109,6 +110,8 @@ public class TokenFilter extends HttpFilter {
       chain.doFilter(req, res);
       return;
     }
+    req.setAttribute(
+        TokenErrorHelper.REQUEST_ATTRIBUTE_NAME, new TokenErrorHelper(tokenFilterHelper));
     tokenFilterHelper.filter(
         req.getMethod(),
         URI.create(req.getRequestURL().toString()),

@@ -20,6 +20,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
+import net.ltgt.oauth.common.TokenErrorHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenIntrospector;
@@ -92,8 +93,8 @@ public class TokenFilter implements ContainerRequestFilter {
   /**
    * Returns the configured {@link TokenFilterHelperFactory}.
    *
-   * <p>The default implementation gets it from the {@linkplain TokenFilter(Configuration) injected}
-   * configuration.
+   * @implSpec The default implementation gets it from the {@linkplain TokenFilter(Configuration)
+   *     injected} configuration.
    */
   @ForOverride
   protected TokenFilterHelperFactory getTokenFilterHelperFactory() {
@@ -112,38 +113,39 @@ public class TokenFilter implements ContainerRequestFilter {
     if (requestContext.getSecurityContext().getUserPrincipal() != null) {
       return;
     }
-    getTokenFilterHelperFactory()
-        .create(getTokenIntrospector(), getTokenPrincipalProvider())
-        .filter(
-            requestContext.getMethod(),
-            requestContext.getUriInfo().getAbsolutePath(),
-            requestContext.getHeaders().getOrDefault(HttpHeaders.AUTHORIZATION, List.of()),
-            requestContext.getHeaders().getOrDefault("DPoP", List.of()),
-            getClientCertificate(requestContext),
-            new TokenFilterHelper.FilterChain<IOException>() {
+    var tokenFilterHelper =
+        getTokenFilterHelperFactory().create(getTokenIntrospector(), getTokenPrincipalProvider());
+    requestContext.setProperty(
+        TokenErrorHelper.REQUEST_ATTRIBUTE_NAME, new TokenErrorHelper(tokenFilterHelper));
+    tokenFilterHelper.filter(
+        requestContext.getMethod(),
+        requestContext.getUriInfo().getAbsolutePath(),
+        requestContext.getHeaders().getOrDefault(HttpHeaders.AUTHORIZATION, List.of()),
+        requestContext.getHeaders().getOrDefault("DPoP", List.of()),
+        getClientCertificate(requestContext),
+        new TokenFilterHelper.FilterChain<IOException>() {
 
-              @Override
-              public void continueChain() {}
+          @Override
+          public void continueChain() {}
 
-              @Override
-              public void continueChain(
-                  String authenticationScheme, TokenPrincipal tokenPrincipal) {
-                requestContext.setSecurityContext(
-                    wrapSecurityContext(
-                        requestContext.getSecurityContext(), authenticationScheme, tokenPrincipal));
-              }
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            requestContext.setSecurityContext(
+                wrapSecurityContext(
+                    requestContext.getSecurityContext(), authenticationScheme, tokenPrincipal));
+          }
 
-              @Override
-              public void sendError(
-                  List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
-                requestContext.abortWith(createErrorResponse(errors, message, cause));
-              }
+          @Override
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+            requestContext.abortWith(createErrorResponse(errors, message, cause));
+          }
 
-              @Override
-              public void sendError(int statusCode, String message, @Nullable Throwable cause) {
-                requestContext.abortWith(createErrorResponse(statusCode, message, cause));
-              }
-            });
+          @Override
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+            requestContext.abortWith(createErrorResponse(statusCode, message, cause));
+          }
+        });
   }
 
   @ForOverride

@@ -9,6 +9,7 @@ import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -26,6 +27,17 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);
+  }
+
+  @Override
+  public List<TokenSchemeError> getUnauthorizedErrors() {
+    return List.of(BearerTokenError.MISSING_TOKEN);
+  }
+
+  @Override
+  public List<TokenSchemeError> adaptError(String authenticationScheme, BearerTokenError error) {
+    assert authenticationScheme.equals(AccessTokenType.BEARER.getValue());
+    return List.of(error);
   }
 
   @Override

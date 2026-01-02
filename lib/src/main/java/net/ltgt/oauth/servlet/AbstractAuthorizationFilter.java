@@ -1,13 +1,18 @@
 package net.ltgt.oauth.servlet;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.errorprone.annotations.ForOverride;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
+import net.ltgt.oauth.common.TokenErrorHelper;
 
 /**
  * Base class for filters that send an error when the token is not authorized.
@@ -65,30 +70,43 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
   /**
    * This method is called whenever the user is not authenticated.
    *
-   * @implSpec The default implementation is equivalent to {@code sendError(res,
-   *     BearerTokenError.MISSING_TOKEN)}.
-   * @see #sendError
+   * @implSpec The default implementation calls {@link #sendError(HttpServletResponse, List)} with
+   *     the errors from {@link TokenErrorHelper#getUnauthorizedErrors()}.
    */
   @ForOverride
   protected void doSendUnauthorized(HttpServletRequest req, HttpServletResponse res)
       throws IOException, ServletException {
-    sendError(res, BearerTokenError.MISSING_TOKEN);
+    sendError(res, getTokenErrorHelper(req).getUnauthorizedErrors());
   }
 
   /**
    * Sends an error response corresponding to the {@link BearerTokenError}.
    *
+   * @implSpec The default implementation {@linkplain TokenErrorHelper#adaptError adapts} the error
+   *     and then passes it to {@link #sendError(HttpServletResponse, List)}.
+   */
+  protected void sendError(HttpServletRequest req, HttpServletResponse res, BearerTokenError error)
+      throws IOException, ServletException {
+    sendError(res, getTokenErrorHelper(req).adaptError(req.getAuthType(), error));
+  }
+
+  /**
+   * Sends an error response corresponding to the {@link TokenSchemeError}.
+   *
    * @implSpec The default implementation {@linkplain HttpServletResponse#reset() resets} the
    *     response, then sets the {@linkplain HttpServletResponse#setStatus status code} to the
-   *     {@linkplain BearerTokenError#getHTTPStatusCode() error's status code}, and adds a {@code
-   *     WWW-Authenticate} header from {@linkplain BearerTokenError#toWWWAuthenticateHeader() the
-   *     error}.
+   *     {@linkplain TokenSchemeError#getHTTPStatusCode() first error's status code}, and adds
+   *     {@code WWW-Authenticate} headers from {@linkplain
+   *     TokenSchemeError#toWWWAuthenticateHeader() the errors}.
    */
-  protected void sendError(HttpServletResponse res, BearerTokenError error)
+  @ForOverride
+  protected void sendError(HttpServletResponse res, List<TokenSchemeError> errors)
       throws IOException, ServletException {
     res.reset();
-    res.setStatus(error.getHTTPStatusCode());
-    res.setHeader("WWW-Authenticate", error.toWWWAuthenticateHeader());
+    res.setStatus(errors.getFirst().getHTTPStatusCode());
+    for (TokenSchemeError error : errors) {
+      res.setHeader("WWW-Authenticate", error.toWWWAuthenticateHeader());
+    }
   }
 
   /**
@@ -104,5 +122,11 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
   protected void sendForbidden(HttpServletRequest req, HttpServletResponse res)
       throws IOException, ServletException {
     res.sendError(HttpServletResponse.SC_FORBIDDEN);
+  }
+
+  private TokenErrorHelper getTokenErrorHelper(HttpServletRequest req) {
+    return requireNonNull(
+        (TokenErrorHelper) req.getAttribute(TokenErrorHelper.REQUEST_ATTRIBUTE_NAME),
+        "The filter is not behind a token filter (like BearerTokenFilter)");
   }
 }

@@ -6,6 +6,7 @@ import com.nimbusds.oauth2.sdk.Scope;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import net.ltgt.oauth.common.TokenPrincipal;
@@ -35,8 +36,8 @@ public class HasScopeFilter extends AbstractAuthorizationFilter {
   }
 
   @Override
-  protected Response createForbiddenResponse(SecurityContext securityContext) {
+  protected Response createForbiddenResponse(ContainerRequestContext requestContext) {
     return createErrorResponse(
-        securityContext, BearerTokenError.INSUFFICIENT_SCOPE.setScope(new Scope(scope)));
+        requestContext, BearerTokenError.INSUFFICIENT_SCOPE.setScope(new Scope(scope)));
   }
 }

@@ -62,6 +62,6 @@ public class HasScopeFilter extends AbstractAuthorizationFilter {
   @Override
   protected void sendForbidden(HttpServletRequest req, HttpServletResponse res)
       throws IOException, ServletException {
-    sendError(res, BearerTokenError.INSUFFICIENT_SCOPE.setScope(new Scope(scope)));
+    sendError(req, res, BearerTokenError.INSUFFICIENT_SCOPE.setScope(new Scope(scope)));
   }
 }

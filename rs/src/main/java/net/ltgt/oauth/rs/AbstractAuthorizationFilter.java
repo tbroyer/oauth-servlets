@@ -1,13 +1,18 @@
 package net.ltgt.oauth.rs;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.errorprone.annotations.ForOverride;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import java.io.IOException;
+import java.util.List;
+import net.ltgt.oauth.common.TokenErrorHelper;
 
 /**
  * Base class for filters that send an error when the token is not authorized.
@@ -35,7 +40,7 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
       requestContext.setProperty(IS_PRIVATE_REQUEST_PROPERTY_NAME, true);
       return;
     }
-    requestContext.abortWith(createUnauthorizedResponse(securityContext));
+    requestContext.abortWith(createUnauthorizedResponse(requestContext));
   }
 
   /** Returns whether the token is authorized. */
@@ -49,38 +54,57 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
    * authenticated, and defers to {@link #doCreateUnauthorizedResponse} otherwise.
    */
   @ForOverride
-  protected Response createUnauthorizedResponse(SecurityContext securityContext) {
-    if (securityContext.getUserPrincipal() == null) {
-      return doCreateUnauthorizedResponse(securityContext);
+  protected Response createUnauthorizedResponse(ContainerRequestContext requestContext) {
+    if (requestContext.getSecurityContext().getUserPrincipal() == null) {
+      return doCreateUnauthorizedResponse(requestContext);
     } else {
-      return createForbiddenResponse(securityContext);
+      return createForbiddenResponse(requestContext);
     }
   }
 
   /**
    * This method is called whenever the user is not authenticated.
    *
-   * @implSpec The default implementation is equivalent to {@code
-   *     createErrorResponse(securityContext, BearerTokenError.MISSING_TOKEN)}.
-   * @see #createErrorResponse
+   * @implSpec The default implementation calls {@link #createErrorResponse(SecurityContext, List)}
+   *     with the errors from {@link TokenErrorHelper#getUnauthorizedErrors()}.
    */
   @ForOverride
-  protected Response doCreateUnauthorizedResponse(SecurityContext securityContext) {
-    return createErrorResponse(securityContext, BearerTokenError.MISSING_TOKEN);
+  protected Response doCreateUnauthorizedResponse(ContainerRequestContext requestContext) {
+    return createErrorResponse(
+        requestContext.getSecurityContext(),
+        getTokenErrorHelper(requestContext).getUnauthorizedErrors());
+  }
+
+  /**
+   * Creates an error response corresponding to the {@link BearerTokenError}.
+   *
+   * @implSpec The default implementation {@linkplain TokenErrorHelper#adaptError adapts} the error
+   *     and then passes it to {@link #createErrorResponse(SecurityContext, List)}.
+   */
+  protected Response createErrorResponse(
+      ContainerRequestContext requestContext, BearerTokenError error) {
+    return createErrorResponse(
+        requestContext.getSecurityContext(),
+        getTokenErrorHelper(requestContext)
+            .adaptError(requestContext.getSecurityContext().getAuthenticationScheme(), error));
   }
 
   /**
    * Creates an error response corresponding to the {@link BearerTokenError}.
    *
    * @implSpec The default implementation sets the {@linkplain Response#getStatus} status code} to
-   *     the {@linkplain BearerTokenError#getHTTPStatusCode() error's status code}, and adds a
-   *     {@link HttpHeaders#WWW_AUTHENTICATE WWW-Authenticate} header from {@linkplain
-   *     BearerTokenError#toWWWAuthenticateHeader() the error}.
+   *     the {@linkplain TokenSchemeError#getHTTPStatusCode() first error's status code}, and adds
+   *     {@link HttpHeaders#WWW_AUTHENTICATE WWW-Authenticate} headers from {@linkplain
+   *     BearerTokenError#toWWWAuthenticateHeader() the errors}.
    */
-  protected Response createErrorResponse(SecurityContext securityContext, BearerTokenError error) {
-    return Response.status(error.getHTTPStatusCode())
-        .header(HttpHeaders.WWW_AUTHENTICATE, error.toWWWAuthenticateHeader())
-        .build();
+  @ForOverride
+  protected Response createErrorResponse(
+      SecurityContext securityContext, List<TokenSchemeError> errors) {
+    var rb = Response.status(errors.getFirst().getHTTPStatusCode());
+    for (TokenSchemeError error : errors) {
+      rb.header(HttpHeaders.WWW_AUTHENTICATE, error.toWWWAuthenticateHeader());
+    }
+    return rb.build();
   }
 
   /**
@@ -94,7 +118,13 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
    *     BearerTokenError#INSUFFICIENT_SCOPE} error.
    */
   @ForOverride
-  protected Response createForbiddenResponse(SecurityContext securityContext) {
+  protected Response createForbiddenResponse(ContainerRequestContext requestContext) {
     return Response.status(Response.Status.FORBIDDEN).build();
+  }
+
+  private TokenErrorHelper getTokenErrorHelper(ContainerRequestContext requestContext) {
+    return requireNonNull(
+        (TokenErrorHelper) requestContext.getProperty(TokenErrorHelper.REQUEST_ATTRIBUTE_NAME),
+        "The filter is not behind a token filter (like BearerTokenFilter)");
   }
 }
