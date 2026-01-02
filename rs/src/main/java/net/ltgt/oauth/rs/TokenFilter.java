@@ -21,6 +21,7 @@ import java.util.List;
 import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
+import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.TokenPrincipalProvider;
@@ -48,7 +49,8 @@ public class TokenFilter implements ContainerRequestFilter {
    * Constructs a filter without configuration.
    *
    * <p>When this constructor is used by a subclass, it must override {@link
-   * #getTokenIntrospector()} and {@link #getTokenPrincipalProvider()}.
+   * #getTokenIntrospector()}, {@link #getTokenPrincipalProvider()}, and {@link
+   * #getTokenFilterHelperFactory()}.
    */
   protected TokenFilter() {}
 
@@ -87,12 +89,31 @@ public class TokenFilter implements ContainerRequestFilter {
     return tokenPrincipalProvider;
   }
 
+  /**
+   * Returns the configured {@link TokenFilterHelperFactory}.
+   *
+   * <p>The default implementation gets it from the {@linkplain TokenFilter(Configuration) injected}
+   * configuration.
+   */
+  @ForOverride
+  protected TokenFilterHelperFactory getTokenFilterHelperFactory() {
+    var tokenFilterHelperFactory =
+        (TokenFilterHelperFactory)
+            requireNonNull(configuration)
+                .getProperty(TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME);
+    if (tokenFilterHelperFactory == null) {
+      return BearerTokenFilterHelper.FACTORY;
+    }
+    return tokenFilterHelperFactory;
+  }
+
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
     if (requestContext.getSecurityContext().getUserPrincipal() != null) {
       return;
     }
-    new BearerTokenFilterHelper(getTokenIntrospector(), getTokenPrincipalProvider())
+    getTokenFilterHelperFactory()
+        .create(getTokenIntrospector(), getTokenPrincipalProvider())
         .filter(
             requestContext.getMethod(),
             requestContext.getUriInfo().getAbsolutePath(),

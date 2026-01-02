@@ -2,7 +2,6 @@ package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
 
-import com.google.errorprone.annotations.RestrictedApi;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
@@ -18,11 +17,12 @@ import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
 
 public class BearerTokenFilterHelper implements TokenFilterHelper {
+  public static final TokenFilterHelperFactory FACTORY = BearerTokenFilterHelper::new;
+
   private final TokenIntrospector tokenIntrospector;
   private final TokenPrincipalProvider tokenPrincipalProvider;
 
-  @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
-  public BearerTokenFilterHelper(
+  private BearerTokenFilterHelper(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);

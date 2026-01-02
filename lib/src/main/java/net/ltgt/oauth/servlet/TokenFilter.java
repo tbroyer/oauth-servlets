@@ -20,6 +20,7 @@ import java.util.List;
 import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
+import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.TokenPrincipalProvider;
@@ -41,20 +42,35 @@ import org.jspecify.annotations.Nullable;
 public class TokenFilter extends HttpFilter {
   private TokenIntrospector tokenIntrospector;
   private TokenPrincipalProvider tokenPrincipalProvider;
+  private TokenFilterHelperFactory tokenFilterHelperFactory;
   private TokenFilterHelper tokenFilterHelper;
 
   public TokenFilter() {}
 
   /**
-   * Constructs a filter with the given configuration, token introspector, and token principal
-   * provider.
+   * Constructs a filter with the given token introspector and token principal provider, and a
+   * {@code Bearer} token filter helper factory.
    *
    * <p>When this constructor is used, the servlet context attributes won't be read.
    */
   public TokenFilter(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
+    this(tokenIntrospector, tokenPrincipalProvider, BearerTokenFilterHelper.FACTORY);
+  }
+
+  /**
+   * Constructs a filter with the given token introspector, token principal provider, and token
+   * filter helper factory.
+   *
+   * <p>When this constructor is used, the servlet context attributes won't be read.
+   */
+  public TokenFilter(
+      TokenIntrospector tokenIntrospector,
+      TokenPrincipalProvider tokenPrincipalProvider,
+      TokenFilterHelperFactory tokenFilterHelperFactory) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);
+    this.tokenFilterHelperFactory = requireNonNull(tokenFilterHelperFactory);
   }
 
   @OverridingMethodsMustInvokeSuper
@@ -74,7 +90,16 @@ public class TokenFilter extends HttpFilter {
     if (tokenPrincipalProvider == null) {
       tokenPrincipalProvider = SimpleTokenPrincipal.PROVIDER;
     }
-    this.tokenFilterHelper = new BearerTokenFilterHelper(tokenIntrospector, tokenPrincipalProvider);
+    if (tokenFilterHelperFactory == null) {
+      tokenFilterHelperFactory =
+          (TokenFilterHelperFactory)
+              getServletContext().getAttribute(TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME);
+    }
+    if (tokenFilterHelperFactory == null) {
+      tokenFilterHelperFactory = BearerTokenFilterHelper.FACTORY;
+    }
+    this.tokenFilterHelper =
+        tokenFilterHelperFactory.create(tokenIntrospector, tokenPrincipalProvider);
   }
 
   @Override
