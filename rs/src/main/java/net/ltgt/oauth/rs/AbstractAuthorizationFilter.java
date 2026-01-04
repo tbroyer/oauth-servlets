@@ -20,8 +20,8 @@ import java.io.IOException;
  * ({@link jakarta.ws.rs.Priorities#AUTHENTICATION AUTHENTICATION}), most likely {@link
  * jakarta.ws.rs.Priorities#AUTHORIZATION AUTHORIZATION}.
  *
- * @see <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-12.html">The OAuth 2.1
- *     Authorization Framework (draft 12)</a>
+ * @see <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-14.html">The OAuth 2.1
+ *     Authorization Framework (draft 14)</a>
  * @see TokenFilter
  */
 public abstract class AbstractAuthorizationFilter implements ContainerRequestFilter {

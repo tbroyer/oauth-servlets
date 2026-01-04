@@ -32,8 +32,8 @@ import org.jspecify.annotations.Nullable;
  * for other filters and resources down the chain. The user principal will be created by the {@link
  * TokenPrincipalProvider} present in the {@link Configuration}.
  *
- * @see <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-12.html">The OAuth 2.1
- *     Authorization Framework (draft 12)</a>
+ * @see <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-14.html">The OAuth 2.1
+ *     Authorization Framework (draft 14)</a>
  * @see <a href="https://www.rfc-editor.org/rfc/rfc7662.html">OAuth 2.0 Token Introspection</a>
  */
 @Provider

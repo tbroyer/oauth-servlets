@@ -18,8 +18,8 @@ import java.io.IOException;
  *
  * <p>Subclasses should be installed <i>after</i> the {@link TokenFilter}.
  *
- * @see <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-12.html">The OAuth 2.1
- *     Authorization Framework (draft 12)</a>
+ * @see <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-v2-1-14.html">The OAuth 2.1
+ *     Authorization Framework (draft 14)</a>
  * @see TokenFilter
  */
 public abstract class AbstractAuthorizationFilter extends HttpFilter {
