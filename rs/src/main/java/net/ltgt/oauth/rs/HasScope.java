@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Ensures the user {@linkplain net.ltgt.oauth.common.TokenPrincipal#hasScope(String) has a given
- * role}
+ * Ensures the access token {@linkplain net.ltgt.oauth.common.TokenPrincipal#hasScope(String) has a
+ * given scope}
  *
  * @see HasScopeFeature
  * @see HasScopeFilter

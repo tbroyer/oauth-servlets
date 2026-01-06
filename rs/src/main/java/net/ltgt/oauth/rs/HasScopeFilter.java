@@ -8,7 +8,6 @@ import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import jakarta.ws.rs.ext.Provider;
 import net.ltgt.oauth.common.TokenPrincipal;
 
 /**
@@ -18,7 +17,6 @@ import net.ltgt.oauth.common.TokenPrincipal;
  * @see HasScope
  * @see HasScopeFeature
  */
-@Provider
 @Priority(Priorities.AUTHORIZATION)
 public class HasScopeFilter extends AbstractAuthorizationFilter {
   private final String scope;

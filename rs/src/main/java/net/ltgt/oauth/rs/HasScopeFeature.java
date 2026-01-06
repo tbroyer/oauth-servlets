@@ -3,8 +3,10 @@ package net.ltgt.oauth.rs;
 import jakarta.ws.rs.container.DynamicFeature;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.FeatureContext;
+import jakarta.ws.rs.ext.Provider;
 
 /** Applies the {@link HasScopeFilter} to any resource annotated with {@link HasScope}. */
+@Provider
 public class HasScopeFeature implements DynamicFeature {
   @Override
   public void configure(ResourceInfo resourceInfo, FeatureContext context) {

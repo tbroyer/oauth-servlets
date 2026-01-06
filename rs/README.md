@@ -62,7 +62,7 @@ The `TokenFilter` will pass all requests down the filter chain (unless their `Au
 
 * The `IsAuthenticatedFilter` for instance only checks that a `TokenPrincipal` is indeed present (i.e. the request must include an `Authorization: Bearer` header with a valid token). Annotate your application or resources with `@IsAuthenticated` to use bind this filter to your resources.
 * The `HasRoleFilter` checks whether the user has a given role; this requires using a custom `TokenPrincipal` (if only a `KeycloakTokenPrincipal`). Register the `HasRoleFeature` and annotate your resources with `@HasRole()` to bind this filter to your resources. You can also create subclasses with a name binding; make sure to register them with a priority higher than `Priorities.AUTHENTICATION` (most likely `Priorities.AUTHORIZATION`).
-* The `HasScopeFilter` will also check whether the token has a given scope value, and will respond with an `insufficient_scope` error otherwise. Register the `HasRoleFeature` and annotate your resources with `@HasRole()` to bind this filter to your resources. You can also create subclasses with a name binding; make sure to register them with a priority higher than `Priorities.AUTHENTICATION` (most likely `Priorities.AUTHORIZATION`).
+* The `HasScopeFilter` will also check whether the token has a given scope value, and will respond with an `insufficient_scope` error otherwise. Register the `HasScopeFeature` and annotate your resources with `@HasScope()` to bind this filter to your resources. You can also create subclasses with a name binding; make sure to register them with a priority higher than `Priorities.AUTHENTICATION` (most likely `Priorities.AUTHORIZATION`).
 
 ### Cache configuration
 
