@@ -45,7 +45,7 @@ public class BearerTokenExtension implements BeforeEachCallback, AfterEachCallba
 
   @Override
   public void afterEach(ExtensionContext context) throws Exception {
-    for (var token : tokens) {
+    for (var token : Set.copyOf(tokens)) {
       revoke(token);
     }
   }
