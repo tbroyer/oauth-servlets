@@ -84,7 +84,7 @@ public class TokenFilter extends HttpFilter {
 
       @Override
       protected void sendError(BearerTokenError error, String message, @Nullable Throwable cause)
-          throws IOException {
+          throws IOException, ServletException {
         TokenFilter.this.sendError(res, error, message, cause);
       }
 
@@ -99,7 +99,7 @@ public class TokenFilter extends HttpFilter {
   @ForOverride
   protected void sendError(
       HttpServletResponse res, BearerTokenError error, String message, @Nullable Throwable cause)
-      throws IOException {
+      throws IOException, ServletException {
     if (cause != null) {
       log(message, cause);
     }
