@@ -5,11 +5,13 @@ import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.oauth2.sdk.as.ReadOnlyAuthorizationServerMetadata;
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
 import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import java.net.URI;
@@ -21,10 +23,12 @@ import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
+import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import net.ltgt.oauth.common.fixtures.Helpers;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -419,5 +423,51 @@ public class BearerTokenFilterHelperTest {
         });
 
     assertThat(called.get()).isTrue();
+  }
+
+  @Nested
+  class DPoPInterop {
+    @RegisterExtension
+    public DPoPTokenExtension dpopClient = new DPoPTokenExtension(JWSAlgorithm.ES256);
+
+    @Test
+    public void validDPoPTokenUsedAsBearer() throws Exception {
+      var called = new AtomicBoolean();
+      var sut =
+          BearerTokenFilterHelper.FACTORY.create(
+              tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+      sut.filter(
+          REQUEST_METHOD,
+          REQUEST_URI,
+          List.of(new BearerAccessToken(dpopClient.get().getValue()).toAuthorizationHeader()),
+          List.of(),
+          null,
+          new TokenFilterHelper.FilterChain<Exception>() {
+            @Override
+            public void continueChain() {
+              fail();
+            }
+
+            @Override
+            public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+              called.set(true);
+              assertThat(tokenPrincipal.getTokenInfo().getUsername())
+                  .isEqualTo("service-account-app");
+            }
+
+            @Override
+            public void sendError(
+                List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              fail();
+            }
+
+            @Override
+            public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+              fail();
+            }
+          });
+      assertThat(called.get()).isTrue();
+    }
   }
 }
