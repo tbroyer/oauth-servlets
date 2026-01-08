@@ -13,6 +13,7 @@ import com.google.errorprone.annotations.RestrictedApi;
  *
  * @see BearerTokenFilterHelper#FACTORY
  * @see DPoPTokenFilterHelper.Factory
+ * @see DPoPOrBearerTokenFilterHelper.Factory
  */
 public interface TokenFilterHelperFactory {
   String CONTEXT_ATTRIBUTE_NAME = TokenFilterHelperFactory.class.getName();

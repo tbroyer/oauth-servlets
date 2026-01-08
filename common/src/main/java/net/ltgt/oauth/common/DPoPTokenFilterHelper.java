@@ -1,13 +1,13 @@
 package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.Objects.requireNonNullElse;
 import static net.ltgt.oauth.common.Utils.checkMTLSBoundToken;
+import static net.ltgt.oauth.common.Utils.isDPoPToken;
 import static net.ltgt.oauth.common.Utils.matchesAuthenticationScheme;
+import static net.ltgt.oauth.common.Utils.parseDPoPProof;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
@@ -161,27 +161,15 @@ public class DPoPTokenFilterHelper implements TokenFilterHelper {
     }
 
     // https://www.rfc-editor.org/rfc/rfc9449#section-4.3
-    if (dpopProofs.isEmpty()) {
-      chain.sendError(
-          List.of(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(acceptedJWSAlgs)),
-          "Missing DPoP proof",
-          null);
-      return;
-    } else if (dpopProofs.size() > 1) {
-      chain.sendError(
-          List.of(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(acceptedJWSAlgs)),
-          "Too many DPoP proofs",
-          null);
-      return;
-    }
-    SignedJWT dpopProof;
-    try {
-      dpopProof = SignedJWT.parse(dpopProofs.getFirst());
-    } catch (java.text.ParseException e) {
-      chain.sendError(
-          List.of(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(acceptedJWSAlgs)),
-          "Error parsing the DPoP proof",
-          e);
+    var dpopProof =
+        parseDPoPProof(
+            dpopProofs,
+            (message, cause) ->
+                chain.sendError(
+                    List.of(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(acceptedJWSAlgs)),
+                    message,
+                    cause));
+    if (dpopProof == null) {
       return;
     }
 
@@ -192,12 +180,7 @@ public class DPoPTokenFilterHelper implements TokenFilterHelper {
       chain.sendError(HTTPResponse.SC_SERVER_ERROR, "Error introspecting token", e.getCause());
       return;
     }
-    if (introspectionResponse == null
-        // Not a DPoP token (token_type is present and not DPoP)
-        || !AccessTokenType.DPOP.equals(
-            requireNonNullElse(introspectionResponse.getTokenType(), AccessTokenType.DPOP))
-        // Not a DPoP token (missing cnf.jkt in introspection response)
-        || introspectionResponse.getJWKThumbprintConfirmation() == null) {
+    if (introspectionResponse == null || !isDPoPToken(introspectionResponse)) {
       chain.sendError(
           List.of(DPoPTokenError.INVALID_TOKEN.setJWSAlgorithms(acceptedJWSAlgs)),
           "Invalid token",

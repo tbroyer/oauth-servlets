@@ -58,7 +58,7 @@ Custom implementations can also read additional data (e.g. from a database) to e
 
 ### DPoP
 
-To accept DPoP tokens, register a `DPoPTokenFilterHelper.Factory` as a `Configuration` property.
+To accept DPoP tokens, register a `TokenFilterHelperFactory` (either `DPoPTokenFilterHelper.Factory` or `DPoPOrBearerTokenFilterHelper.Factory`) as a `Configuration` property.
 
 For now, DPoP nonces aren't used.
 

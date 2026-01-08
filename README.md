@@ -53,7 +53,7 @@ Custom implementations can also read additional data (e.g. from a database) to e
 
 ### DPoP
 
-To accept DPoP tokens, register a `DPoPTokenFilterHelper.Factory` as a `ServletContext` attribute.
+To accept DPoP tokens, register a `TokenFilterHelperFactory` (either `DPoPTokenFilterHelper.Factory` or `DPoPOrBearerTokenFilterHelper.Factory`) as a `ServletContext` attribute.
 
 ```java
 var tokenFilterFactory = new DPoPTokenFilterHelper.Factory(/* … */);
