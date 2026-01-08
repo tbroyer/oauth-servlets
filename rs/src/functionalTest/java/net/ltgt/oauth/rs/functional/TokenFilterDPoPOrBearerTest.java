@@ -21,6 +21,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
 import net.ltgt.oauth.common.DPoPOrBearerTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelperFactory;
@@ -57,7 +58,8 @@ public class TokenFilterDPoPOrBearerTest {
                 .getProviderFactory()
                 .property(
                     TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                    new DPoPOrBearerTokenFilterHelper.Factory(ALGS, null));
+                    new DPoPOrBearerTokenFilterHelper.Factory(
+                        ALGS, new CaffeineDPoPSingleUseChecker()));
             dispatcher.getRegistry().addPerRequestResource(TestResource.class);
           });
 
@@ -384,6 +386,33 @@ public class TokenFilterDPoPOrBearerTest {
               .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), null)
               .serialize());
       var response = new MockHttpResponse();
+      server.invoke(request, response);
+      assertThat(response.getStatus())
+          .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+      var wwwAuthenticates = getWwwAuthenticate(response.getOutputHeaders());
+      assertThat(wwwAuthenticates)
+          .containsExactly(
+              DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
+              BearerTokenError.MISSING_TOKEN);
+    }
+
+    @Test
+    public void replayedDPoPProof() throws Exception {
+      var token = client.get();
+      var request =
+          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+      request.header(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+              .serialize());
+
+      var response = new MockHttpResponse();
+      server.invoke(request, response);
+      assertThat(response.getStatus()).isEqualTo(200);
+      assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+
+      response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus())
           .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());

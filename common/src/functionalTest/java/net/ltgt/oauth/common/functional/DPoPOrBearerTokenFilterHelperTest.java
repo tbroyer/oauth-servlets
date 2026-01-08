@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
 import net.ltgt.oauth.common.DPoPOrBearerTokenFilterHelper;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
@@ -44,7 +45,7 @@ public class DPoPOrBearerTokenFilterHelperTest {
   private static ReadOnlyAuthorizationServerMetadata authorizationServerMetadata;
   private static ClientSecretBasic clientAuthentication;
   private static DPoPOrBearerTokenFilterHelper.Factory factory =
-      new DPoPOrBearerTokenFilterHelper.Factory(ALGS, null);
+      new DPoPOrBearerTokenFilterHelper.Factory(ALGS, new CaffeineDPoPSingleUseChecker());
 
   private TokenIntrospector tokenIntrospector;
 
@@ -855,6 +856,84 @@ public class DPoPOrBearerTokenFilterHelperTest {
           List.of(client.createDPoPJWT(REQUEST_METHOD, REQUEST_URI, null).serialize()),
           null,
           new TokenFilterHelper.FilterChain<Exception>() {
+            @Override
+            public void continueChain() {
+              fail();
+            }
+
+            @Override
+            public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+              fail();
+            }
+
+            @Override
+            public void sendError(
+                List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              called.set(true);
+              assertThat(errors)
+                  .containsExactly(
+                      DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
+                      BearerTokenError.MISSING_TOKEN);
+            }
+
+            @Override
+            public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+              fail();
+            }
+          });
+      assertThat(called.get()).isTrue();
+    }
+
+    @Test
+    public void replayedDPoPProof() throws Exception {
+      var called = new AtomicBoolean();
+      var sut = factory.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+      var token = client.get();
+      var dpopProof = client.createDPoPJWT(REQUEST_METHOD, REQUEST_URI, token).serialize();
+
+      sut.filter(
+          REQUEST_METHOD,
+          REQUEST_URI,
+          List.of(token.toAuthorizationHeader()),
+          List.of(dpopProof),
+          null,
+          new TokenFilterHelper.FilterChain<>() {
+            @Override
+            public void continueChain() {
+              fail();
+            }
+
+            @Override
+            public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+              called.set(true);
+              assertThat(authenticationScheme).isEqualTo(AccessTokenType.DPOP.getValue());
+              assertThat(tokenPrincipal.getTokenInfo().getUsername())
+                  .isEqualTo("service-account-app");
+            }
+
+            @Override
+            public void sendError(
+                List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              fail();
+            }
+
+            @Override
+            public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+              fail();
+            }
+          });
+      assertThat(called.get()).isTrue();
+
+      called.set(false);
+
+      sut.filter(
+          REQUEST_METHOD,
+          REQUEST_URI,
+          List.of(token.toAuthorizationHeader()),
+          List.of(dpopProof),
+          null,
+          new TokenFilterHelper.FilterChain<>() {
             @Override
             public void continueChain() {
               fail();

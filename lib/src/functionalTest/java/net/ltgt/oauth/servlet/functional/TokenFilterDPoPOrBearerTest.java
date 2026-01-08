@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
 import net.ltgt.oauth.common.DPoPOrBearerTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelperFactory;
@@ -40,7 +41,8 @@ public class TokenFilterDPoPOrBearerTest {
           contextHandler -> {
             contextHandler.setAttribute(
                 TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                new DPoPOrBearerTokenFilterHelper.Factory(ALGS, null));
+                new DPoPOrBearerTokenFilterHelper.Factory(
+                    ALGS, new CaffeineDPoPSingleUseChecker()));
             contextHandler.addServlet(
                 new HttpServlet() {
                   @Override
@@ -405,6 +407,32 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+    }
+
+    @Test
+    public void replayedDPoPProof() throws Exception {
+      var token = client.get();
+      var request = HttpTester.newRequest();
+      request.setMethod("GET");
+      request.setURI("/");
+      request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
+      request.put(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .serialize());
+
+      var response = server.getResponse(request);
+      assertThat(response.getStatus()).isEqualTo(200);
+      assertThat(response.getContent()).isEqualTo("service-account-app");
+
+      response = server.getResponse(request);
+      assertThat(response.getStatus())
+          .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+      var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
+      assertThat(wwwAuthenticate).isNotNull();
+      assertThat(DPoPTokenError.parse(wwwAuthenticate))
+          .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
     }
 
     @Test

@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
+import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
 import net.ltgt.oauth.common.DPoPTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelperFactory;
@@ -33,7 +34,7 @@ public class TokenFilterDPoPTest {
           contextHandler -> {
             contextHandler.setAttribute(
                 TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                new DPoPTokenFilterHelper.Factory(ALGS, null));
+                new DPoPTokenFilterHelper.Factory(ALGS, new CaffeineDPoPSingleUseChecker()));
             contextHandler.addServlet(
                 new HttpServlet() {
                   @Override
@@ -260,6 +261,32 @@ public class TokenFilterDPoPTest {
             .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), null)
             .serialize());
     var response = server.getResponse(request);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isNotNull();
+    assertThat(DPoPTokenError.parse(wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+  }
+
+  @Test
+  public void replayedDPoPProof() throws Exception {
+    var token = client.get();
+    var request = HttpTester.newRequest();
+    request.setMethod("GET");
+    request.setURI("/");
+    request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
+    request.put(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+            .serialize());
+
+    var response = server.getResponse(request);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContent()).isEqualTo("service-account-app");
+
+    response = server.getResponse(request);
     assertThat(response.getStatus())
         .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
     var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
