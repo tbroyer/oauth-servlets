@@ -1,8 +1,8 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
-errorprone = "2.45.0"
+errorprone = "2.46.0"
 jetty = "12.1.5"
-junitJupiter = "6.0.1"
+junitJupiter = "6.0.2"
 nullaway = "0.12.15"
 
 # Versions used in build-logic
@@ -21,7 +21,7 @@ jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet" }
 jetty-slf4jImpl = { module = "org.eclipse.jetty:jetty-slf4j-impl" }
 jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
-nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.30.2"
+nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.31"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
 resteasy-bom = "org.jboss.resteasy:resteasy-bom:7.0.1.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
