@@ -9,8 +9,8 @@ public interface TokenPrincipal extends Principal {
   /**
    * Returns the user's name.
    *
-   * <p>The default implementation returns the <i>subject</i> from the token information in {@link
-   * #getTokenInfo()}.
+   * @implSpec The default implementation returns the <i>subject</i> from the token information in
+   *     {@link #getTokenInfo()}.
    */
   @Override
   default String getName() {
@@ -23,8 +23,8 @@ public interface TokenPrincipal extends Principal {
   /**
    * Returns whether the token has a given scope value.
    *
-   * <p>The default implementation is equivalent to {@code
-   * getTokenInfo().getScope().contains(scope)}.
+   * @implSpec The default implementation is equivalent to {@code
+   *     getTokenInfo().getScope().contains(scope)}.
    */
   default boolean hasScope(Scope.Value scope) {
     return getTokenInfo().getScope().contains(scope);
@@ -33,8 +33,8 @@ public interface TokenPrincipal extends Principal {
   /**
    * Returns whether the token has a given scope value.
    *
-   * <p>The default implementation is equivalent to {@code
-   * getTokenInfo().getScope().contains(scope)}.
+   * @implSpec The default implementation is equivalent to {@code
+   *     getTokenInfo().getScope().contains(scope)}.
    */
   default boolean hasScope(String scope) {
     return getTokenInfo().getScope().contains(scope);

@@ -57,8 +57,8 @@ public class TokenFilter implements ContainerRequestFilter {
   /**
    * Returns the configured {@link TokenIntrospector}.
    *
-   * <p>The default implementation gets it from the {@linkplain TokenFilter(Configuration) injected}
-   * configuration.
+   * @implSpec The default implementation gets it from the {@linkplain TokenFilter(Configuration)
+   *     injected} configuration.
    */
   @ForOverride
   protected TokenIntrospector getTokenIntrospector() {
@@ -70,8 +70,8 @@ public class TokenFilter implements ContainerRequestFilter {
   /**
    * Returns the configured {@link TokenPrincipalProvider}.
    *
-   * <p>The default implementation gets it from the {@linkplain TokenFilter(Configuration) injected}
-   * configuration.
+   * @implSpec The default implementation gets it from the {@linkplain TokenFilter(Configuration)
+   *     injected} configuration.
    */
   @ForOverride
   protected TokenPrincipalProvider getTokenPrincipalProvider() {

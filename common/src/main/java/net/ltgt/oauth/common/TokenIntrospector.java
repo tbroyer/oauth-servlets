@@ -280,7 +280,7 @@ public class TokenIntrospector {
    * Returns a map of custom parameters to add to the {@linkplain TokenIntrospectionRequest token
    * introspection request}.
    *
-   * <p>The default implementation returns {@code null}.
+   * @implSpec The default implementation returns {@code null}.
    */
   @ForOverride
   protected @Nullable Map<String, List<String>> getTokenIntrospectionRequestCustomParams() {

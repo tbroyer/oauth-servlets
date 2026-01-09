@@ -60,9 +60,8 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
   /**
    * This method is called whenever the user is not authenticated.
    *
-   * <p>The default implementation is equivalent to {@code createErrorResponse(securityContext,
-   * BearerTokenError.MISSING_TOKEN)}.
-   *
+   * @implSpec The default implementation is equivalent to {@code
+   *     createErrorResponse(securityContext, BearerTokenError.MISSING_TOKEN)}.
    * @see #createErrorResponse
    */
   @ForOverride
@@ -73,10 +72,10 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
   /**
    * Creates an error response corresponding to the {@link BearerTokenError}.
    *
-   * <p>The default implementation sets the {@linkplain Response#getStatus} status code} to the
-   * {@linkplain BearerTokenError#getHTTPStatusCode() error's status code}, and adds a {@link
-   * HttpHeaders#WWW_AUTHENTICATE WWW-Authenticate} header from {@linkplain
-   * BearerTokenError#toWWWAuthenticateHeader() the error}.
+   * @implSpec The default implementation sets the {@linkplain Response#getStatus} status code} to
+   *     the {@linkplain BearerTokenError#getHTTPStatusCode() error's status code}, and adds a
+   *     {@link HttpHeaders#WWW_AUTHENTICATE WWW-Authenticate} header from {@linkplain
+   *     BearerTokenError#toWWWAuthenticateHeader() the error}.
    */
   protected Response createErrorResponse(SecurityContext securityContext, BearerTokenError error) {
     return Response.status(error.getHTTPStatusCode())
@@ -87,12 +86,12 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
   /**
    * This method is called whenever the request is authenticated but not authorized.
    *
-   * <p>The default implementation creates a response with only the status set (to {@link
-   * Response.Status#FORBIDDEN FORBIDDEN}).
-   *
-   * <p>A subclass checking the token's scopes, for instance, would likely override this method to
-   * call {@link #createErrorResponse} with a configured {@link BearerTokenError#INSUFFICIENT_SCOPE}
-   * error.
+   * @implSpec
+   *     <p>The default implementation creates a response with only the status set (to {@link
+   *     Response.Status#FORBIDDEN FORBIDDEN}).
+   *     <p>A subclass checking the token's scopes, for instance, would likely override this method
+   *     to call {@link #createErrorResponse} with a configured {@link
+   *     BearerTokenError#INSUFFICIENT_SCOPE} error.
    */
   @ForOverride
   protected Response createForbiddenResponse(SecurityContext securityContext) {

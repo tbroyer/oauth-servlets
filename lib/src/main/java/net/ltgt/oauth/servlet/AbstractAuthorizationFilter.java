@@ -65,9 +65,8 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
   /**
    * This method is called whenever the user is not authenticated.
    *
-   * <p>The default implementation is equivalent to {@code sendError(res,
-   * BearerTokenError.MISSING_TOKEN)}.
-   *
+   * @implSpec The default implementation is equivalent to {@code sendError(res,
+   *     BearerTokenError.MISSING_TOKEN)}.
    * @see #sendError
    */
   @ForOverride
@@ -79,10 +78,11 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
   /**
    * Sends an error response corresponding to the {@link BearerTokenError}.
    *
-   * <p>The default implementation {@linkplain HttpServletResponse#reset() resets} the response,
-   * then sets the {@linkplain HttpServletResponse#setStatus status code} to the {@linkplain
-   * BearerTokenError#getHTTPStatusCode() error's status code}, and adds a {@code WWW-Authenticate}
-   * header from {@linkplain BearerTokenError#toWWWAuthenticateHeader() the error}.
+   * @implSpec The default implementation {@linkplain HttpServletResponse#reset() resets} the
+   *     response, then sets the {@linkplain HttpServletResponse#setStatus status code} to the
+   *     {@linkplain BearerTokenError#getHTTPStatusCode() error's status code}, and adds a {@code
+   *     WWW-Authenticate} header from {@linkplain BearerTokenError#toWWWAuthenticateHeader() the
+   *     error}.
    */
   protected void sendError(HttpServletResponse res, BearerTokenError error)
       throws IOException, ServletException {
@@ -94,10 +94,11 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
   /**
    * This method is called whenever the request is authenticated but not authorized.
    *
-   * <p>The default implementation simply calls {@code res.sendError(SC_FORBIDDEN)}.
-   *
-   * <p>A subclass checking the token's scopes, for instance, would likely override this method to
-   * call {@link #sendError} with a configured {@link BearerTokenError#INSUFFICIENT_SCOPE} error.
+   * @implSpec
+   *     <p>The default implementation simply calls {@code res.sendError(SC_FORBIDDEN)}.
+   *     <p>A subclass checking the token's scopes, for instance, would likely override this method
+   *     to call {@link #sendError} with a configured {@link BearerTokenError#INSUFFICIENT_SCOPE}
+   *     error.
    */
   @ForOverride
   protected void sendForbidden(HttpServletRequest req, HttpServletResponse res)
