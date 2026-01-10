@@ -335,6 +335,46 @@ public class DPoPTokenFilterHelperTest {
   }
 
   @Test
+  public void validTokenInSecondAuthorizationHeader() throws Exception {
+    var called = new AtomicBoolean();
+    var sut = factory.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    var token = client.get();
+    sut.filter(
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(clientAuthentication.toHTTPAuthorizationHeader(), token.toAuthorizationHeader()),
+        List.of(client.createDPoPJWT(REQUEST_METHOD, REQUEST_URI, token).serialize()),
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
+          @Override
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            called.set(true);
+            assertThat(authenticationScheme).isEqualTo(AccessTokenType.DPOP.getValue());
+            assertThat(tokenPrincipal.getTokenInfo().getUsername())
+                .isEqualTo("service-account-app");
+          }
+
+          @Override
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+            fail();
+          }
+
+          @Override
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+            fail();
+          }
+        });
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
   public void invalidDPoPProof() throws Exception {
     var called = new AtomicBoolean();
     var sut = factory.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);

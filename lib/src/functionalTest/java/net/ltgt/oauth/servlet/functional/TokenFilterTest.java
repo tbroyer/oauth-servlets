@@ -126,6 +126,19 @@ public class TokenFilterTest {
   }
 
   @Test
+  public void validTokenInSecondAuthorizationHeader() throws Exception {
+    var request = HttpTester.newRequest();
+    request.setMethod("GET");
+    request.setURI("/");
+    request.add(
+        HttpHeader.AUTHORIZATION, server.getClientAuthentication().toHTTPAuthorizationHeader());
+    request.add(HttpHeader.AUTHORIZATION, client.get().toAuthorizationHeader());
+    var response = server.getResponse(request);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContent()).isEqualTo("service-account-app");
+  }
+
+  @Test
   public void revokedButCachedToken() throws Exception {
     var token = client.get();
     var request = HttpTester.newRequest();

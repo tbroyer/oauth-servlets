@@ -333,6 +333,48 @@ public class BearerTokenFilterHelperTest {
   }
 
   @Test
+  public void validTokenInSecondAuthorizationHeader() throws Exception {
+    var called = new AtomicBoolean();
+    var sut =
+        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+    sut.filter(
+        REQUEST_METHOD,
+        REQUEST_URI,
+        List.of(
+            clientAuthentication.toHTTPAuthorizationHeader(), client.get().toAuthorizationHeader()),
+        List.of(),
+        null,
+        new TokenFilterHelper.FilterChain<Exception>() {
+          @Override
+          public void continueChain() {
+            fail();
+          }
+
+          @Override
+          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            called.set(true);
+            assertThat(authenticationScheme).isEqualTo(AccessTokenType.BEARER.getValue());
+            assertThat(tokenPrincipal.getTokenInfo().getUsername())
+                .isEqualTo("service-account-app");
+          }
+
+          @Override
+          public void sendError(
+              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+            fail();
+          }
+
+          @Override
+          public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+            fail();
+          }
+        });
+
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
   public void revokedButCachedToken() throws Exception {
     var called = new AtomicBoolean();
     var sut =

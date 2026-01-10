@@ -148,6 +148,26 @@ public class TokenFilterDPoPTest {
   }
 
   @Test
+  public void validTokenInSecondAuthorizationHeader() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                server.getClientAuthentication().toHTTPAuthorizationHeader())
+            .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token)
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+  }
+
+  @Test
   public void invalidDPoPProof() throws Exception {
     var token = client.get();
     var request =

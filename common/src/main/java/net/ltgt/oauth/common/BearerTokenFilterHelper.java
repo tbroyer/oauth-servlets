@@ -50,12 +50,12 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
       @Nullable X509Certificate clientCertificate,
       FilterChain<E> chain)
       throws IOException, E {
-    if (authorizations.isEmpty()) {
-      chain.continueChain();
-      return;
-    }
-    var authorization = authorizations.getFirst();
-    if (!matchesAuthenticationScheme("bearer", authorization)) {
+    var authorization =
+        authorizations.stream()
+            .filter(auth -> matchesAuthenticationScheme("bearer", auth))
+            .findFirst()
+            .orElse(null);
+    if (authorization == null) {
       chain.continueChain();
       return;
     }

@@ -129,12 +129,12 @@ public class DPoPTokenFilterHelper implements TokenFilterHelper {
       @Nullable X509Certificate clientCertificate,
       TokenFilterHelper.FilterChain<E> chain)
       throws IOException, E {
-    if (authorizations.isEmpty()) {
-      chain.continueChain();
-      return;
-    }
-    var authorization = authorizations.getFirst();
-    if (!matchesAuthenticationScheme("dpop", authorization)) {
+    var authorization =
+        authorizations.stream()
+            .filter(auth -> matchesAuthenticationScheme("dpop", auth))
+            .findFirst()
+            .orElse(null);
+    if (authorization == null) {
       chain.continueChain();
       return;
     }
