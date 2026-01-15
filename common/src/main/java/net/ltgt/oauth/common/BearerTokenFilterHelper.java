@@ -11,6 +11,7 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -36,6 +37,11 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
   }
 
   @Override
+  public @Nullable Nonce getDPoPNonce() {
+    return null;
+  }
+
+  @Override
   public List<TokenSchemeError> adaptError(String authenticationScheme, BearerTokenError error) {
     assert authenticationScheme.equals(AccessTokenType.BEARER.getValue());
     return List.of(error);
@@ -56,7 +62,7 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
             .findFirst()
             .orElse(null);
     if (authorization == null) {
-      chain.continueChain();
+      chain.continueChain(null);
       return;
     }
     BearerAccessToken token;
@@ -69,13 +75,14 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
       } else {
         chain.sendError(
             List.of((BearerTokenError) e.getErrorObject()),
+            null,
             "Error parsing the Authorization header",
             e);
         return;
       }
     }
     if (token == null) {
-      chain.continueChain();
+      chain.continueChain(null);
       return;
     }
     TokenIntrospectionSuccessResponse introspectionResponse;
@@ -86,21 +93,21 @@ public class BearerTokenFilterHelper implements TokenFilterHelper {
       return;
     }
     if (introspectionResponse == null) {
-      chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), "Invalid token", null);
+      chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), null, "Invalid token", null);
       return;
     }
     String errorMessage =
         checkMTLSBoundToken(
             introspectionResponse.getX509CertificateConfirmation(), clientCertificate);
     if (errorMessage != null) {
-      chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), errorMessage, null);
+      chain.sendError(List.of(BearerTokenError.INVALID_TOKEN), null, errorMessage, null);
       return;
     }
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
     if (tokenPrincipal != null) {
-      chain.continueChain(AccessTokenType.BEARER.getValue(), tokenPrincipal);
+      chain.continueChain(AccessTokenType.BEARER.getValue(), tokenPrincipal, null);
     } else {
-      chain.continueChain();
+      chain.continueChain(null);
     }
   }
 }

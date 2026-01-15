@@ -14,6 +14,7 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,18 +75,25 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             called.set(true);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -112,18 +120,25 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             called.set(true);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -150,18 +165,25 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             called.set(true);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -188,20 +210,27 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             called.set(true);
             assertThat(errors).containsExactly(BearerTokenError.INVALID_REQUEST);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
@@ -227,20 +256,27 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             called.set(true);
             assertThat(errors).containsExactly(BearerTokenError.INVALID_REQUEST);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
@@ -266,20 +302,27 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             called.set(true);
             assertThat(errors).containsExactly(BearerTokenError.INVALID_TOKEN);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
@@ -305,21 +348,28 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             called.set(true);
             assertThat(authenticationScheme).isEqualTo(AccessTokenType.BEARER.getValue());
             assertThat(tokenPrincipal.getTokenInfo().getUsername())
                 .isEqualTo("service-account-app");
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -347,21 +397,28 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             called.set(true);
             assertThat(authenticationScheme).isEqualTo(AccessTokenType.BEARER.getValue());
             assertThat(tokenPrincipal.getTokenInfo().getUsername())
                 .isEqualTo("service-account-app");
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -382,21 +439,28 @@ public class BearerTokenFilterHelperTest {
     var chain =
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             called.set(true);
             assertThat(authenticationScheme).isEqualTo(AccessTokenType.BEARER.getValue());
             assertThat(tokenPrincipal.getTokenInfo().getUsername())
                 .isEqualTo("service-account-app");
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -443,18 +507,25 @@ public class BearerTokenFilterHelperTest {
         null,
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
-          public void continueChain() {
+          public void continueChain(@Nullable Nonce dpopNonce) {
             called.set(true);
+            assertThat(dpopNonce).isNull();
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             fail();
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
             fail();
           }
 
@@ -487,20 +558,27 @@ public class BearerTokenFilterHelperTest {
           null,
           new TokenFilterHelper.FilterChain<Exception>() {
             @Override
-            public void continueChain() {
+            public void continueChain(@Nullable Nonce dpopNonce) {
               fail();
             }
 
             @Override
-            public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+            public void continueChain(
+                String authenticationScheme,
+                TokenPrincipal tokenPrincipal,
+                @Nullable Nonce dpopNonce) {
               called.set(true);
               assertThat(tokenPrincipal.getTokenInfo().getUsername())
                   .isEqualTo("service-account-app");
+              assertThat(dpopNonce).isNull();
             }
 
             @Override
             public void sendError(
-                List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+                List<TokenSchemeError> errors,
+                @Nullable Nonce dpopNonce,
+                String message,
+                @Nullable Throwable cause) {
               fail();
             }
 

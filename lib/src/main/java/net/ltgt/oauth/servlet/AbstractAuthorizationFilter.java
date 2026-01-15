@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import com.google.errorprone.annotations.ForOverride;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import net.ltgt.oauth.common.TokenErrorHelper;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base class for filters that send an error when the token is not authorized.
@@ -70,24 +72,27 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
   /**
    * This method is called whenever the user is not authenticated.
    *
-   * @implSpec The default implementation calls {@link #sendError(HttpServletResponse, List)} with
-   *     the errors from {@link TokenErrorHelper#getUnauthorizedErrors()}.
+   * @implSpec The default implementation calls {@link #sendError(HttpServletResponse, List, Nonce)}
+   *     with the errors from {@link TokenErrorHelper#getUnauthorizedErrors()} and DPoP nonce from
+   *     {@link TokenErrorHelper#getDPoPNonce()}.
    */
   @ForOverride
   protected void doSendUnauthorized(HttpServletRequest req, HttpServletResponse res)
       throws IOException, ServletException {
-    sendError(res, getTokenErrorHelper(req).getUnauthorizedErrors());
+    var tokenErrorHelper = getTokenErrorHelper(req);
+    sendError(res, tokenErrorHelper.getUnauthorizedErrors(), tokenErrorHelper.getDPoPNonce());
   }
 
   /**
    * Sends an error response corresponding to the {@link BearerTokenError}.
    *
    * @implSpec The default implementation {@linkplain TokenErrorHelper#adaptError adapts} the error
-   *     and then passes it to {@link #sendError(HttpServletResponse, List)}.
+   *     and then passes it to {@link #sendError(HttpServletResponse, List, Nonce)} along with a
+   *     {@code null} nonce.
    */
   protected void sendError(HttpServletRequest req, HttpServletResponse res, BearerTokenError error)
       throws IOException, ServletException {
-    sendError(res, getTokenErrorHelper(req).adaptError(req.getAuthType(), error));
+    sendError(res, getTokenErrorHelper(req).adaptError(req.getAuthType(), error), null);
   }
 
   /**
@@ -97,15 +102,20 @@ public abstract class AbstractAuthorizationFilter extends HttpFilter {
    *     response, then sets the {@linkplain HttpServletResponse#setStatus status code} to the
    *     {@linkplain TokenSchemeError#getHTTPStatusCode() first error's status code}, and adds
    *     {@code WWW-Authenticate} headers from {@linkplain
-   *     TokenSchemeError#toWWWAuthenticateHeader() the errors}.
+   *     TokenSchemeError#toWWWAuthenticateHeader() the errors} and an optional {@code DPoP-Nonce}
+   *     header.
    */
   @ForOverride
-  protected void sendError(HttpServletResponse res, List<TokenSchemeError> errors)
+  protected void sendError(
+      HttpServletResponse res, List<TokenSchemeError> errors, @Nullable Nonce dpopNonce)
       throws IOException, ServletException {
     res.reset();
     res.setStatus(errors.getFirst().getHTTPStatusCode());
     for (TokenSchemeError error : errors) {
       res.setHeader("WWW-Authenticate", error.toWWWAuthenticateHeader());
+    }
+    if (dpopNonce != null) {
+      res.setHeader(TokenErrorHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
     }
   }
 

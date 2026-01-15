@@ -4,10 +4,13 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.errorprone.annotations.ForOverride;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.Configuration;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -42,7 +45,9 @@ import org.jspecify.annotations.Nullable;
  */
 @Provider
 @Priority(Priorities.AUTHENTICATION)
-public class TokenFilter implements ContainerRequestFilter {
+public class TokenFilter implements ContainerRequestFilter, ContainerResponseFilter {
+
+  private static final String DPOP_NONCE_PROPERTY = TokenFilter.class.getName() + ".DPoP-Nonce";
 
   protected @Nullable Configuration configuration;
 
@@ -126,19 +131,28 @@ public class TokenFilter implements ContainerRequestFilter {
         new TokenFilterHelper.FilterChain<IOException>() {
 
           @Override
-          public void continueChain() {}
+          public void continueChain(@Nullable Nonce dpopNonce) {
+            requestContext.setProperty(DPOP_NONCE_PROPERTY, dpopNonce);
+          }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal) {
+          public void continueChain(
+              String authenticationScheme,
+              TokenPrincipal tokenPrincipal,
+              @Nullable Nonce dpopNonce) {
             requestContext.setSecurityContext(
                 wrapSecurityContext(
                     requestContext.getSecurityContext(), authenticationScheme, tokenPrincipal));
+            requestContext.setProperty(DPOP_NONCE_PROPERTY, dpopNonce);
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
-            requestContext.abortWith(createErrorResponse(errors, message, cause));
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause) {
+            requestContext.abortWith(createErrorResponse(errors, dpopNonce, message, cause));
           }
 
           @Override
@@ -148,15 +162,31 @@ public class TokenFilter implements ContainerRequestFilter {
         });
   }
 
+  @Override
+  public void filter(
+      ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+    if (requestContext.getProperty(DPOP_NONCE_PROPERTY) instanceof Nonce dpopNonce) {
+      responseContext
+          .getHeaders()
+          .putSingle(TokenFilterHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
+    }
+  }
+
   @ForOverride
   protected Response createErrorResponse(
-      List<TokenSchemeError> errors, String message, @Nullable Throwable cause) {
+      List<TokenSchemeError> errors,
+      @Nullable Nonce dpopNonce,
+      String message,
+      @Nullable Throwable cause) {
     if (cause != null) {
       log(message, cause);
     }
     var rb = Response.status(errors.getFirst().getHTTPStatusCode());
     for (var error : errors) {
       rb.header(HttpHeaders.WWW_AUTHENTICATE, error.toWWWAuthenticateHeader());
+    }
+    if (dpopNonce != null) {
+      rb.header(TokenFilterHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
     }
     return rb.build();
   }

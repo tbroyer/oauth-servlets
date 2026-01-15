@@ -5,12 +5,14 @@ import static java.util.Objects.requireNonNull;
 import com.google.errorprone.annotations.ForOverride;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
@@ -121,21 +123,28 @@ public class TokenFilter extends HttpFilter {
         new TokenFilterHelper.FilterChain<ServletException>() {
 
           @Override
-          public void continueChain() throws IOException, ServletException {
-            chain.doFilter(req, res);
+          public void continueChain(@Nullable Nonce dpopNonce)
+              throws IOException, ServletException {
+            chain.doFilter(req, maybeWrapResponse(res, dpopNonce));
           }
 
           @Override
-          public void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal)
+          public void continueChain(
+              String authenticationScheme, TokenPrincipal tokenPrincipal, @Nullable Nonce dpopNonce)
               throws IOException, ServletException {
-            chain.doFilter(wrapRequest(req, authenticationScheme, tokenPrincipal), res);
+            chain.doFilter(
+                wrapRequest(req, authenticationScheme, tokenPrincipal),
+                maybeWrapResponse(res, dpopNonce));
           }
 
           @Override
           public void sendError(
-              List<TokenSchemeError> errors, String message, @Nullable Throwable cause)
+              List<TokenSchemeError> errors,
+              @Nullable Nonce dpopNonce,
+              String message,
+              @Nullable Throwable cause)
               throws IOException, ServletException {
-            TokenFilter.this.sendError(res, errors, message, cause);
+            TokenFilter.this.sendError(res, errors, dpopNonce, message, cause);
           }
 
           @Override
@@ -150,6 +159,7 @@ public class TokenFilter extends HttpFilter {
   protected void sendError(
       HttpServletResponse res,
       List<TokenSchemeError> errors,
+      @Nullable Nonce dpopNonce,
       String message,
       @Nullable Throwable cause)
       throws IOException, ServletException {
@@ -160,6 +170,9 @@ public class TokenFilter extends HttpFilter {
     res.setStatus(errors.getFirst().getHTTPStatusCode());
     for (var error : errors) {
       res.addHeader("WWW-Authenticate", error.toWWWAuthenticateHeader());
+    }
+    if (dpopNonce != null) {
+      res.setHeader(TokenFilterHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
     }
   }
 
@@ -200,6 +213,21 @@ public class TokenFilter extends HttpFilter {
       @Override
       public boolean isUserInRole(String role) {
         return tokenPrincipal.hasRole(role);
+      }
+    };
+  }
+
+  private HttpServletResponse maybeWrapResponse(
+      HttpServletResponse res, @Nullable Nonce dpopNonce) {
+    if (dpopNonce == null) {
+      return res;
+    }
+    res.setHeader(TokenFilterHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
+    return new HttpServletResponseWrapper(res) {
+      @Override
+      public void reset() {
+        super.reset();
+        res.setHeader(TokenFilterHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
       }
     };
   }

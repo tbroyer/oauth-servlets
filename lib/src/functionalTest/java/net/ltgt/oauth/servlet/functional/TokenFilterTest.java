@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
+import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
 import org.eclipse.jetty.http.HttpHeader;
@@ -48,6 +49,7 @@ public class TokenFilterTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("null");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -60,6 +62,7 @@ public class TokenFilterTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("null");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -71,6 +74,7 @@ public class TokenFilterTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("null");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -85,6 +89,7 @@ public class TokenFilterTest {
     var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
     assertThat(wwwAuthenticate).isNotNull();
     assertThat(BearerTokenError.parse(wwwAuthenticate)).isEqualTo(BearerTokenError.INVALID_REQUEST);
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -99,6 +104,7 @@ public class TokenFilterTest {
     var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
     assertThat(wwwAuthenticate).isNotNull();
     assertThat(BearerTokenError.parse(wwwAuthenticate)).isEqualTo(BearerTokenError.INVALID_REQUEST);
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -112,6 +118,7 @@ public class TokenFilterTest {
     var wwwAuthenticate = response.get(HttpHeader.WWW_AUTHENTICATE);
     assertThat(wwwAuthenticate).isNotNull();
     assertThat(BearerTokenError.parse(wwwAuthenticate)).isEqualTo(BearerTokenError.INVALID_TOKEN);
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -123,6 +130,7 @@ public class TokenFilterTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("service-account-app");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -136,6 +144,7 @@ public class TokenFilterTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("service-account-app");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -148,6 +157,7 @@ public class TokenFilterTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("service-account-app");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
 
     client.revoke(token);
 
@@ -158,5 +168,6 @@ public class TokenFilterTest {
     response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("service-account-app");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 }

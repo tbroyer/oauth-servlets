@@ -23,6 +23,7 @@ import com.nimbusds.oauth2.sdk.dpop.DefaultDPoPProofFactory;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import com.uber.nullaway.annotations.Initializer;
 import java.io.IOException;
 import java.net.URI;
@@ -99,8 +100,9 @@ public class DPoPTokenExtension implements BeforeEachCallback, AfterEachCallback
     tokens.remove(token);
   }
 
-  public SignedJWT createDPoPJWT(String method, URI uri, @Nullable AccessToken token)
+  public SignedJWT createDPoPJWT(
+      String method, URI uri, @Nullable AccessToken token, @Nullable Nonce nonce)
       throws JOSEException {
-    return proofFactory.createDPoPJWT(method, uri, token);
+    return proofFactory.createDPoPJWT(method, uri, token, nonce);
   }
 }

@@ -10,6 +10,7 @@ import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
 import com.nimbusds.oauth2.sdk.token.DPoPTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class TokenFilterDPoPOrBearerTest {
   private static final Set<JWSAlgorithm> ALGS = Set.of(JWSAlgorithm.ES256, JWSAlgorithm.PS256);
+  private static final Nonce OLD_NONCE = new Nonce();
+  private static final Nonce CURRENT_NONCE = new Nonce();
 
   @RegisterExtension
   public WebServerExtension server =
@@ -42,7 +45,9 @@ public class TokenFilterDPoPOrBearerTest {
             contextHandler.setAttribute(
                 TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
                 new DPoPOrBearerTokenFilterHelper.Factory(
-                    ALGS, new CaffeineDPoPSingleUseChecker()));
+                    ALGS,
+                    new CaffeineDPoPSingleUseChecker(),
+                    () -> List.of(CURRENT_NONCE, OLD_NONCE)));
             contextHandler.addServlet(
                 new HttpServlet() {
                   @Override
@@ -90,6 +95,7 @@ public class TokenFilterDPoPOrBearerTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("null");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -102,6 +108,7 @@ public class TokenFilterDPoPOrBearerTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("null");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Test
@@ -113,6 +120,7 @@ public class TokenFilterDPoPOrBearerTest {
     var response = server.getResponse(request);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContent()).isEqualTo("null");
+    assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
   }
 
   @Nested
@@ -133,6 +141,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.MISSING_TOKEN.setJWSAlgorithms(ALGS),
               BearerTokenError.INVALID_REQUEST);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -149,6 +158,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.MISSING_TOKEN.setJWSAlgorithms(ALGS),
               BearerTokenError.INVALID_REQUEST);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -164,6 +174,7 @@ public class TokenFilterDPoPOrBearerTest {
       assertThat(wwwAuthenticates)
           .containsExactly(
               DPoPTokenError.MISSING_TOKEN.setJWSAlgorithms(ALGS), BearerTokenError.INVALID_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -175,6 +186,7 @@ public class TokenFilterDPoPOrBearerTest {
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -188,6 +200,7 @@ public class TokenFilterDPoPOrBearerTest {
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -200,6 +213,7 @@ public class TokenFilterDPoPOrBearerTest {
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
 
       client.revoke(token);
 
@@ -210,6 +224,7 @@ public class TokenFilterDPoPOrBearerTest {
       response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
   }
 
@@ -232,6 +247,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_REQUEST.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -248,6 +264,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_REQUEST.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -262,7 +279,8 @@ public class TokenFilterDPoPOrBearerTest {
               .createDPoPJWT(
                   request.getMethod(),
                   server.getURI(request.getURI()),
-                  new DPoPAccessToken("invalid"))
+                  new DPoPAccessToken("invalid"),
+                  CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(DPoPTokenError.INVALID_TOKEN.getHTTPStatusCode());
@@ -270,6 +288,7 @@ public class TokenFilterDPoPOrBearerTest {
       assertThat(wwwAuthenticates)
           .containsExactly(
               DPoPTokenError.INVALID_TOKEN.setJWSAlgorithms(ALGS), BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -282,11 +301,13 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -301,11 +322,32 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
+    }
+
+    @Test
+    public void oldNonce() throws Exception {
+      var token = client.get();
+      var request = HttpTester.newRequest();
+      request.setMethod("GET");
+      request.setURI("/");
+      request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
+      request.put(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token, OLD_NONCE)
+              .serialize());
+      var response = server.getResponse(request);
+      assertThat(response.getStatus()).isEqualTo(200);
+      assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.getValuesList(TokenFilterHelper.DPOP_NONCE_HEADER_NAME))
+          .containsExactly(CURRENT_NONCE.getValue());
     }
 
     @Test
@@ -317,7 +359,9 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
-          client.createDPoPJWT("POST", server.getURI(request.getURI()), token).serialize());
+          client
+              .createDPoPJWT("POST", server.getURI(request.getURI()), token, CURRENT_NONCE)
+              .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus())
           .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
@@ -326,6 +370,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -342,6 +387,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -354,12 +400,14 @@ public class TokenFilterDPoPOrBearerTest {
       request.add(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       request.add(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus())
@@ -369,6 +417,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -386,6 +435,7 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -397,7 +447,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), null)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), null, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus())
@@ -407,6 +458,52 @@ public class TokenFilterDPoPOrBearerTest {
           .containsExactly(
               DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
               BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
+    }
+
+    @Test
+    public void missingNonce() throws Exception {
+      var token = client.get();
+      var request = HttpTester.newRequest();
+      request.setMethod("GET");
+      request.setURI("/");
+      request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
+      request.put(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token, null)
+              .serialize());
+      var response = server.getResponse(request);
+      assertThat(response.getStatus()).isEqualTo(DPoPTokenError.USE_DPOP_NONCE.getHTTPStatusCode());
+      var wwwAuthenticates = getWwwAuthenticate(response);
+      assertThat(wwwAuthenticates)
+          .containsExactly(
+              DPoPTokenError.USE_DPOP_NONCE.setJWSAlgorithms(ALGS), BearerTokenError.MISSING_TOKEN);
+      assertThat(response.getValuesList(TokenFilterHelper.DPOP_NONCE_HEADER_NAME))
+          .containsExactly(CURRENT_NONCE.getValue());
+    }
+
+    @Test
+    public void badNonce() throws Exception {
+      var token = client.get();
+      var request = HttpTester.newRequest();
+      request.setMethod("GET");
+      request.setURI("/");
+      request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
+      request.put(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, new Nonce())
+              .serialize());
+      var response = server.getResponse(request);
+      assertThat(response.getStatus()).isEqualTo(DPoPTokenError.USE_DPOP_NONCE.getHTTPStatusCode());
+      var wwwAuthenticates = getWwwAuthenticate(response);
+      assertThat(wwwAuthenticates)
+          .containsExactly(
+              DPoPTokenError.USE_DPOP_NONCE.setJWSAlgorithms(ALGS), BearerTokenError.MISSING_TOKEN);
+      assertThat(response.getValuesList(TokenFilterHelper.DPOP_NONCE_HEADER_NAME))
+          .containsExactly(CURRENT_NONCE.getValue());
     }
 
     @Test
@@ -419,12 +516,14 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
 
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
 
       response = server.getResponse(request);
       assertThat(response.getStatus())
@@ -433,6 +532,7 @@ public class TokenFilterDPoPOrBearerTest {
       assertThat(wwwAuthenticate).isNotNull();
       assertThat(DPoPTokenError.parse(wwwAuthenticate))
           .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -445,11 +545,13 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
 
       client.revoke(token);
 
@@ -460,11 +562,13 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(200);
       assertThat(response.getContent()).isEqualTo("service-account-app");
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
   }
 
@@ -490,6 +594,7 @@ public class TokenFilterDPoPOrBearerTest {
       assertThat(wwwAuthenticates)
           .containsExactly(
               DPoPTokenError.MISSING_TOKEN.setJWSAlgorithms(ALGS), BearerTokenError.INVALID_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -503,7 +608,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           dpopClient
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus()).isEqualTo(DPoPTokenError.INVALID_TOKEN.getHTTPStatusCode());
@@ -511,6 +617,7 @@ public class TokenFilterDPoPOrBearerTest {
       assertThat(wwwAuthenticates)
           .containsExactly(
               DPoPTokenError.INVALID_TOKEN.setJWSAlgorithms(ALGS), BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -526,7 +633,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           dpopClient
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus())
@@ -539,6 +647,7 @@ public class TokenFilterDPoPOrBearerTest {
                   .setDescription("Multiple methods used to include access token"),
               BearerTokenError.INVALID_REQUEST.setDescription(
                   "Multiple methods used to include access token"));
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -553,7 +662,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           dpopClient
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), token)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), token, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus())
@@ -566,6 +676,7 @@ public class TokenFilterDPoPOrBearerTest {
                   .setDescription("Multiple methods used to include access token"),
               BearerTokenError.INVALID_REQUEST.setDescription(
                   "Multiple methods used to include access token"));
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
 
     @Test
@@ -579,7 +690,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.put(
           TokenFilterHelper.DPOP_HEADER_NAME,
           dpopClient
-              .createDPoPJWT(request.getMethod(), server.getURI(request.getURI()), dpopToken)
+              .createDPoPJWT(
+                  request.getMethod(), server.getURI(request.getURI()), dpopToken, CURRENT_NONCE)
               .serialize());
       var response = server.getResponse(request);
       assertThat(response.getStatus())
@@ -592,6 +704,7 @@ public class TokenFilterDPoPOrBearerTest {
                   .setDescription("Multiple methods used to include access token"),
               BearerTokenError.INVALID_REQUEST.setDescription(
                   "Multiple methods used to include access token"));
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
     }
   }
 }

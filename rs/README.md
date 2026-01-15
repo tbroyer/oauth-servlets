@@ -62,7 +62,7 @@ To accept DPoP tokens, register a `TokenFilterHelperFactory` (either `DPoPTokenF
 
 You're encouraged to provide a _single use checker_ to the factory to check DPoP proofs' `jti` claims and prevent replays.  OAuth-RS provides `CaffeineDPoPSingleUseChecker` as an implementation based on a Caffeine cache.
 
-For now, DPoP nonces aren't used.
+You can also optionally provide a `DPoPNonceSupplier` to require using DPoP nonces.
 
 ### Authorizations
 

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import com.google.errorprone.annotations.ForOverride;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -13,6 +14,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.util.List;
 import net.ltgt.oauth.common.TokenErrorHelper;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base class for filters that send an error when the token is not authorized.
@@ -65,28 +67,33 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
   /**
    * This method is called whenever the user is not authenticated.
    *
-   * @implSpec The default implementation calls {@link #createErrorResponse(SecurityContext, List)}
-   *     with the errors from {@link TokenErrorHelper#getUnauthorizedErrors()}.
+   * @implSpec The default implementation calls {@link #createErrorResponse(SecurityContext, List,
+   *     Nonce)} with the errors from {@link TokenErrorHelper#getUnauthorizedErrors()} and DPoP
+   *     nonce from {@link TokenErrorHelper#getDPoPNonce()}.
    */
   @ForOverride
   protected Response doCreateUnauthorizedResponse(ContainerRequestContext requestContext) {
+    var tokenErrorHelper = getTokenErrorHelper(requestContext);
     return createErrorResponse(
         requestContext.getSecurityContext(),
-        getTokenErrorHelper(requestContext).getUnauthorizedErrors());
+        tokenErrorHelper.getUnauthorizedErrors(),
+        tokenErrorHelper.getDPoPNonce());
   }
 
   /**
    * Creates an error response corresponding to the {@link BearerTokenError}.
    *
    * @implSpec The default implementation {@linkplain TokenErrorHelper#adaptError adapts} the error
-   *     and then passes it to {@link #createErrorResponse(SecurityContext, List)}.
+   *     and then passes it to {@link #createErrorResponse(SecurityContext, List, Nonce)} along with
+   *     a {@code null} nonce.
    */
   protected Response createErrorResponse(
       ContainerRequestContext requestContext, BearerTokenError error) {
     return createErrorResponse(
         requestContext.getSecurityContext(),
         getTokenErrorHelper(requestContext)
-            .adaptError(requestContext.getSecurityContext().getAuthenticationScheme(), error));
+            .adaptError(requestContext.getSecurityContext().getAuthenticationScheme(), error),
+        null);
   }
 
   /**
@@ -95,14 +102,18 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
    * @implSpec The default implementation sets the {@linkplain Response#getStatus} status code} to
    *     the {@linkplain TokenSchemeError#getHTTPStatusCode() first error's status code}, and adds
    *     {@link HttpHeaders#WWW_AUTHENTICATE WWW-Authenticate} headers from {@linkplain
-   *     BearerTokenError#toWWWAuthenticateHeader() the errors}.
+   *     BearerTokenError#toWWWAuthenticateHeader() the errors} and an optional {@code DPoP-Nonce}
+   *     header.
    */
   @ForOverride
   protected Response createErrorResponse(
-      SecurityContext securityContext, List<TokenSchemeError> errors) {
+      SecurityContext securityContext, List<TokenSchemeError> errors, @Nullable Nonce dpopNonce) {
     var rb = Response.status(errors.getFirst().getHTTPStatusCode());
     for (TokenSchemeError error : errors) {
       rb.header(HttpHeaders.WWW_AUTHENTICATE, error.toWWWAuthenticateHeader());
+    }
+    if (dpopNonce != null) {
+      rb.header(TokenErrorHelper.DPOP_NONCE_HEADER_NAME, dpopNonce.getValue());
     }
     return rb.build();
   }

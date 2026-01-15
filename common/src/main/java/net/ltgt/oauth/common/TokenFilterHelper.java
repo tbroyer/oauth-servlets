@@ -3,6 +3,7 @@ package net.ltgt.oauth.common;
 import com.google.errorprone.annotations.RestrictedApi;
 import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -13,9 +14,13 @@ public interface TokenFilterHelper {
   String X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME = "jakarta.servlet.request.X509Certificate";
 
   String DPOP_HEADER_NAME = "DPoP";
+  String DPOP_NONCE_HEADER_NAME = "DPoP-Nonce";
 
   @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
   List<TokenSchemeError> getUnauthorizedErrors();
+
+  @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
+  @Nullable Nonce getDPoPNonce();
 
   @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
   List<TokenSchemeError> adaptError(String authenticationScheme, BearerTokenError error);
@@ -31,12 +36,17 @@ public interface TokenFilterHelper {
       throws IOException, E;
 
   interface FilterChain<E extends Exception> {
-    void continueChain() throws IOException, E;
+    void continueChain(@Nullable Nonce dpopNonce) throws IOException, E;
 
-    void continueChain(String authenticationScheme, TokenPrincipal tokenPrincipal)
+    void continueChain(
+        String authenticationScheme, TokenPrincipal tokenPrincipal, @Nullable Nonce dpopNonce)
         throws IOException, E;
 
-    void sendError(List<TokenSchemeError> errors, String message, @Nullable Throwable cause)
+    void sendError(
+        List<TokenSchemeError> errors,
+        @Nullable Nonce dpopNonce,
+        String message,
+        @Nullable Throwable cause)
         throws IOException, E;
 
     void sendError(int statusCode, String message, @Nullable Throwable cause) throws IOException, E;

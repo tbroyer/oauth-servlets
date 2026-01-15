@@ -63,7 +63,7 @@ servletContext.setAttribute(TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME, tok
 
 You're encouraged to provide a _single use checker_ to the factory to check DPoP proofs' `jti` claims and prevent replays.  OAuth-Servlets provides `CaffeineDPoPSingleUseChecker` as an implementation based on a Caffeine cache.
 
-For now, DPoP nonces aren't used.
+You can also optionally provide a `DPoPNonceSupplier` to require using DPoP nonces.
 
 ### Authorizations
 

@@ -1,21 +1,19 @@
 package net.ltgt.oauth.common;
 
 import static java.util.Objects.requireNonNull;
+import static net.ltgt.oauth.common.Utils.checkDPoPProof;
 import static net.ltgt.oauth.common.Utils.checkMTLSBoundToken;
 import static net.ltgt.oauth.common.Utils.isDPoPToken;
 import static net.ltgt.oauth.common.Utils.matchesAuthenticationScheme;
 import static net.ltgt.oauth.common.Utils.parseDPoPProof;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
-import com.nimbusds.oauth2.sdk.dpop.verifiers.AccessTokenValidationException;
-import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPIssuer;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPProofUse;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPProtectedResourceRequestVerifier;
-import com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPProofException;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken;
@@ -24,12 +22,14 @@ import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
 import com.nimbusds.oauth2.sdk.token.DPoPTokenError;
 import com.nimbusds.oauth2.sdk.token.TokenSchemeError;
 import com.nimbusds.oauth2.sdk.util.singleuse.SingleUseChecker;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
+import net.ltgt.oauth.common.Utils.DPoPException;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -45,6 +45,7 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
 
     private final Set<JWSAlgorithm> acceptedJWSAlgs;
     private final DPoPProtectedResourceRequestVerifier verifier;
+    private final @Nullable DPoPNonceSupplier dpopNonceSupplier;
 
     /**
      * Constructs a factory with the given accepted JWS algorithms, an optional single use checker,
@@ -52,12 +53,14 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
      */
     public Factory(
         Set<JWSAlgorithm> acceptedJWSAlgs,
-        @Nullable SingleUseChecker<DPoPProofUse> singleUseChecker) {
+        @Nullable SingleUseChecker<DPoPProofUse> singleUseChecker,
+        @Nullable DPoPNonceSupplier dpopNonceSupplier) {
       this(
           acceptedJWSAlgs,
           DEFAULT_MAX_CLOCK_SKEW_SECONDS,
           DEFAULT_MAX_AGE_SECONDS,
-          singleUseChecker);
+          singleUseChecker,
+          dpopNonceSupplier);
     }
 
     /**
@@ -68,11 +71,13 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
         Set<JWSAlgorithm> acceptedJWSAlgs,
         long maxClockSkewSeconds,
         long maxAgeSeconds,
-        @Nullable SingleUseChecker<DPoPProofUse> singleUseChecker) {
+        @Nullable SingleUseChecker<DPoPProofUse> singleUseChecker,
+        @Nullable DPoPNonceSupplier dpopNonceSupplier) {
       this.acceptedJWSAlgs = acceptedJWSAlgs = Set.copyOf(acceptedJWSAlgs);
       this.verifier =
           new DPoPProtectedResourceRequestVerifier(
               acceptedJWSAlgs, maxClockSkewSeconds, maxAgeSeconds, singleUseChecker);
+      this.dpopNonceSupplier = dpopNonceSupplier;
     }
 
     @Override
@@ -82,7 +87,8 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
           requireNonNull(tokenIntrospector),
           requireNonNull(tokenPrincipalProvider),
           acceptedJWSAlgs,
-          verifier);
+          verifier,
+          dpopNonceSupplier);
     }
   }
 
@@ -90,16 +96,19 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
   private final TokenPrincipalProvider tokenPrincipalProvider;
   private final Set<JWSAlgorithm> acceptedJWSAlgs;
   private final DPoPProtectedResourceRequestVerifier verifier;
+  private final @Nullable DPoPNonceSupplier dpopNonceSupplier;
 
   private DPoPOrBearerTokenFilterHelper(
       TokenIntrospector tokenIntrospector,
       TokenPrincipalProvider tokenPrincipalProvider,
       Set<JWSAlgorithm> acceptedJWSAlgs,
-      DPoPProtectedResourceRequestVerifier verifier) {
+      DPoPProtectedResourceRequestVerifier verifier,
+      @Nullable DPoPNonceSupplier dpopNonceSupplier) {
     this.tokenIntrospector = tokenIntrospector;
     this.tokenPrincipalProvider = tokenPrincipalProvider;
     this.acceptedJWSAlgs = acceptedJWSAlgs;
     this.verifier = verifier;
+    this.dpopNonceSupplier = dpopNonceSupplier;
   }
 
   @Override
@@ -107,6 +116,14 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
     return List.of(
         DPoPTokenError.MISSING_TOKEN.setJWSAlgorithms(acceptedJWSAlgs),
         BearerTokenError.MISSING_TOKEN);
+  }
+
+  @Override
+  public @Nullable Nonce getDPoPNonce() {
+    if (dpopNonceSupplier == null) {
+      return null;
+    }
+    return dpopNonceSupplier.getNonces().getFirst();
   }
 
   @Override
@@ -162,7 +179,7 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
       return;
     }
     // dpopAuthorization == null && bearerAuthorization == null
-    chain.continueChain();
+    chain.continueChain(null);
   }
 
   private <E extends Exception> void handleDPoPToken(
@@ -185,13 +202,14 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
         sendError(
             chain,
             ((DPoPTokenError) e.getErrorObject()),
+            null,
             "Error parsing the Authorization header",
             e);
         return;
       }
     }
     if (token == null) {
-      chain.continueChain();
+      chain.continueChain(null);
       return;
     }
     // https://www.rfc-editor.org/rfc/rfc9449#section-7.2
@@ -211,6 +229,7 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
                     .setDescription("Multiple methods used to include access token"),
                 BearerTokenError.INVALID_REQUEST.setDescription(
                     "Multiple methods used to include access token")),
+            null,
             "Multiple methods used to include access token",
             null);
         return;
@@ -218,12 +237,11 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
     }
 
     // https://www.rfc-editor.org/rfc/rfc9449#section-4.3
-    var dpopProof =
-        parseDPoPProof(
-            dpopProofs,
-            (message, cause) ->
-                sendError(chain, DPoPTokenError.INVALID_DPOP_PROOF, message, cause));
-    if (dpopProof == null) {
+    SignedJWT dpopProof;
+    try {
+      dpopProof = parseDPoPProof(dpopProofs);
+    } catch (DPoPException e) {
+      sendError(chain, e.getError(), e.getCurrentNonce(), e.getMessage(), e.getCause());
       return;
     }
 
@@ -235,25 +253,17 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
       return;
     }
     if (introspectionResponse == null || !isDPoPToken(introspectionResponse)) {
-      sendError(chain, DPoPTokenError.INVALID_TOKEN, "Invalid token", null);
+      sendError(chain, DPoPTokenError.INVALID_TOKEN, null, "Invalid token", null);
       return;
     }
 
+    Nonce currentNonce;
     try {
-      // XXX: should Resource Server-Provided Nonces be supported?
-      verifier.verify(
-          method,
-          uri,
-          new DPoPIssuer(introspectionResponse.getClientID()),
-          dpopProof,
-          token,
-          introspectionResponse.getJWKThumbprintConfirmation(),
-          null);
-    } catch (AccessTokenValidationException | InvalidDPoPProofException | JOSEException e) {
-      // ath and jkt are checked as part of Section 4.3, but section 7.1 shows an invalid_token
-      // we use invalid_dpop_proof following Section 4.3 (invalid_token wouldn't be wrong though)
-      // cf. https://mailarchive.ietf.org/arch/msg/oauth/g5mF_rJbscAXraQ5izxhXnvZp-o/
-      sendError(chain, DPoPTokenError.INVALID_DPOP_PROOF, "Invalid DPoP proof", e);
+      currentNonce =
+          checkDPoPProof(
+              verifier, dpopNonceSupplier, method, uri, introspectionResponse, dpopProof, token);
+    } catch (DPoPException e) {
+      sendError(chain, e.getError(), e.getCurrentNonce(), e.getMessage(), e.getCause());
       return;
     }
 
@@ -261,15 +271,15 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
         checkMTLSBoundToken(
             introspectionResponse.getX509CertificateConfirmation(), clientCertificate);
     if (errorMessage != null) {
-      sendError(chain, DPoPTokenError.INVALID_TOKEN, errorMessage, null);
+      sendError(chain, DPoPTokenError.INVALID_TOKEN, currentNonce, errorMessage, null);
       return;
     }
 
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
     if (tokenPrincipal != null) {
-      chain.continueChain(AccessTokenType.DPOP.getValue(), tokenPrincipal);
+      chain.continueChain(AccessTokenType.DPOP.getValue(), tokenPrincipal, currentNonce);
     } else {
-      chain.continueChain();
+      chain.continueChain(currentNonce);
     }
   }
 
@@ -293,7 +303,7 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
       }
     }
     if (token == null) {
-      chain.continueChain();
+      chain.continueChain(null);
       return;
     }
 
@@ -328,17 +338,22 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
 
     var tokenPrincipal = tokenPrincipalProvider.getTokenPrincipal(introspectionResponse);
     if (tokenPrincipal != null) {
-      chain.continueChain(AccessTokenType.BEARER.getValue(), tokenPrincipal);
+      chain.continueChain(AccessTokenType.BEARER.getValue(), tokenPrincipal, null);
     } else {
-      chain.continueChain();
+      chain.continueChain(null);
     }
   }
 
   private <E extends Exception> void sendError(
-      FilterChain<E> chain, DPoPTokenError error, String message, @Nullable Throwable cause)
+      FilterChain<E> chain,
+      DPoPTokenError error,
+      @Nullable Nonce dpopNonce,
+      String message,
+      @Nullable Throwable cause)
       throws IOException, E {
     chain.sendError(
         List.of(error.setJWSAlgorithms(acceptedJWSAlgs), BearerTokenError.MISSING_TOKEN),
+        dpopNonce,
         message,
         cause);
   }
@@ -348,6 +363,7 @@ public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
       throws IOException, E {
     chain.sendError(
         List.of(error, DPoPTokenError.MISSING_TOKEN.setJWSAlgorithms(acceptedJWSAlgs)),
+        null,
         message,
         cause);
   }

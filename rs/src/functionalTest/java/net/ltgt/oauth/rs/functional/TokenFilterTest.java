@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import java.util.Optional;
+import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
 import org.jboss.resteasy.mock.MockHttpRequest;
@@ -48,6 +49,8 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("null");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -61,6 +64,8 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("null");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -70,6 +75,8 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("null");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -83,6 +90,8 @@ public class TokenFilterTest {
     assertThat(wwwAuthenticate).isInstanceOf(String.class);
     assertThat(BearerTokenError.parse((String) wwwAuthenticate))
         .isEqualTo(BearerTokenError.INVALID_REQUEST);
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -96,6 +105,8 @@ public class TokenFilterTest {
     assertThat(wwwAuthenticate).isInstanceOf(String.class);
     assertThat(BearerTokenError.parse((String) wwwAuthenticate))
         .isEqualTo(BearerTokenError.INVALID_REQUEST);
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -108,6 +119,8 @@ public class TokenFilterTest {
     assertThat(wwwAuthenticate).isInstanceOf(String.class);
     assertThat(BearerTokenError.parse((String) wwwAuthenticate))
         .isEqualTo(BearerTokenError.INVALID_TOKEN);
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -119,6 +132,8 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -133,6 +148,8 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test
@@ -144,6 +161,8 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
 
     client.revoke(token);
 
@@ -153,5 +172,7 @@ public class TokenFilterTest {
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentAsString()).isEqualTo("service-account-app");
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 }
