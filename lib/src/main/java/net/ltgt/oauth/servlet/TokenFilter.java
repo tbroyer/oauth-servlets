@@ -149,7 +149,7 @@ public class TokenFilter extends HttpFilter {
   }
 
   private @Nullable X509Certificate getClientCertificate(HttpServletRequest req) {
-    if (req.getAttribute("jakarta.servlet.request.X509Certificate")
+    if (req.getAttribute(TokenFilterHelper.X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME)
             instanceof X509Certificate[] certs
         && certs.length > 0) {
       return certs[0];

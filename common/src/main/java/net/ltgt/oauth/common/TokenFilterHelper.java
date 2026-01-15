@@ -15,6 +15,9 @@ import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
 
 public abstract class TokenFilterHelper<E extends Exception> {
+  public static final String X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME =
+      "jakarta.servlet.request.X509Certificate";
+
   private final TokenIntrospector tokenIntrospector;
   private final TokenPrincipalProvider tokenPrincipalProvider;
 

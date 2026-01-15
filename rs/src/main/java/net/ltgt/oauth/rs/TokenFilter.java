@@ -162,7 +162,7 @@ public class TokenFilter implements ContainerRequestFilter {
   }
 
   private @Nullable X509Certificate getClientCertificate(ContainerRequestContext requestContext) {
-    if (requestContext.getProperty("jakarta.servlet.request.X509Certificate")
+    if (requestContext.getProperty(TokenFilterHelper.X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME)
             instanceof X509Certificate[] certs
         && certs.length > 0) {
       return certs[0];
