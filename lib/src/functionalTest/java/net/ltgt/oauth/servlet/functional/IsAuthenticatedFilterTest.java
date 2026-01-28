@@ -13,10 +13,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import net.ltgt.oauth.common.DPoPTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
-import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import net.ltgt.oauth.servlet.IsAuthenticatedFilter;
 import org.eclipse.jetty.http.HttpHeader;
@@ -34,9 +33,8 @@ public class IsAuthenticatedFilterTest {
       new WebServerExtension(
           contextHandler -> {
             contextHandler.setAttribute(
-                TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                new DPoPTokenFilterHelper.Factory(
-                    ALGS, null, () -> List.of(CURRENT_NONCE, OLD_NONCE)));
+                TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+                TokenTypeSupport.dpop(ALGS, null, () -> List.of(CURRENT_NONCE, OLD_NONCE)));
             contextHandler.addFilter(IsAuthenticatedFilter.class, "/*", null);
             contextHandler.addServlet(
                 new HttpServlet() {

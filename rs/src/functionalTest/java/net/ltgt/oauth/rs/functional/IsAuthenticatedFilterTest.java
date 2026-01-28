@@ -15,10 +15,9 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import net.ltgt.oauth.common.DPoPTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
-import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import net.ltgt.oauth.rs.IsAuthenticated;
 import net.ltgt.oauth.rs.IsAuthenticatedFilter;
@@ -53,9 +52,8 @@ public class IsAuthenticatedFilterTest {
             dispatcher
                 .getProviderFactory()
                 .property(
-                    TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                    new DPoPTokenFilterHelper.Factory(
-                        ALGS, null, () -> List.of(CURRENT_NONCE, OLD_NONCE)));
+                    TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+                    TokenTypeSupport.dpop(ALGS, null, () -> List.of(CURRENT_NONCE, OLD_NONCE)));
             dispatcher.getProviderFactory().register(IsAuthenticatedFilter.class);
             dispatcher.getRegistry().addPerRequestResource(TestResource.class);
           });

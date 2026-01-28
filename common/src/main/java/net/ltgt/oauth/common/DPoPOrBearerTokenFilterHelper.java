@@ -36,8 +36,8 @@ import org.jspecify.annotations.Nullable;
  * Authenticates the request using either a DPoP token or a Bearer token, and introspecting it, if
  * provided in the request.
  */
-public class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
-  public static class Factory implements TokenFilterHelperFactory {
+class DPoPOrBearerTokenFilterHelper implements TokenFilterHelper {
+  static class Factory implements TokenTypeSupport {
 
     public static final long DEFAULT_MAX_CLOCK_SKEW_SECONDS =
         DefaultJWTClaimsVerifier.DEFAULT_MAX_CLOCK_SKEW_SECONDS;

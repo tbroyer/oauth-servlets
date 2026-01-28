@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
-import net.ltgt.oauth.common.DPoPOrBearerTokenFilterHelper;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
 import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import net.ltgt.oauth.common.fixtures.Helpers;
@@ -45,8 +45,8 @@ public class DPoPOrBearerTokenFilterHelperTest {
 
   private static ReadOnlyAuthorizationServerMetadata authorizationServerMetadata;
   private static ClientSecretBasic clientAuthentication;
-  private static DPoPOrBearerTokenFilterHelper.Factory factory =
-      new DPoPOrBearerTokenFilterHelper.Factory(ALGS, new CaffeineDPoPSingleUseChecker(), null);
+  private static TokenTypeSupport factory =
+      TokenTypeSupport.dpopOrBearer(ALGS, new CaffeineDPoPSingleUseChecker(), null);
 
   private TokenIntrospector tokenIntrospector;
 
@@ -1279,7 +1279,7 @@ public class DPoPOrBearerTokenFilterHelperTest {
         var called = new AtomicBoolean();
         var nonce = new Nonce();
         var sut =
-            new DPoPOrBearerTokenFilterHelper.Factory(
+            TokenTypeSupport.dpopOrBearer(
                     ALGS, new CaffeineDPoPSingleUseChecker(), () -> List.of(nonce))
                 .create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
@@ -1331,7 +1331,7 @@ public class DPoPOrBearerTokenFilterHelperTest {
         var oldNonce = new Nonce();
         var currentNonce = new Nonce();
         var sut =
-            new DPoPOrBearerTokenFilterHelper.Factory(
+            TokenTypeSupport.dpopOrBearer(
                     ALGS, new CaffeineDPoPSingleUseChecker(), () -> List.of(currentNonce, oldNonce))
                 .create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
@@ -1382,7 +1382,7 @@ public class DPoPOrBearerTokenFilterHelperTest {
         var called = new AtomicBoolean();
         var nonce = new Nonce();
         var sut =
-            new DPoPOrBearerTokenFilterHelper.Factory(
+            TokenTypeSupport.dpopOrBearer(
                     ALGS, new CaffeineDPoPSingleUseChecker(), () -> List.of(nonce))
                 .create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
@@ -1434,7 +1434,7 @@ public class DPoPOrBearerTokenFilterHelperTest {
         var called = new AtomicBoolean();
         var nonce = new Nonce();
         var sut =
-            new DPoPOrBearerTokenFilterHelper.Factory(
+            TokenTypeSupport.dpopOrBearer(
                     ALGS, new CaffeineDPoPSingleUseChecker(), () -> List.of(nonce))
                 .create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 

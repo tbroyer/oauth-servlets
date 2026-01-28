@@ -15,10 +15,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
-import net.ltgt.oauth.common.DPoPTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
-import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
 import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import org.eclipse.jetty.http.HttpHeader;
@@ -37,8 +36,8 @@ public class TokenFilterDPoPTest {
       new WebServerExtension(
           contextHandler -> {
             contextHandler.setAttribute(
-                TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                new DPoPTokenFilterHelper.Factory(
+                TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+                TokenTypeSupport.dpop(
                     ALGS,
                     new CaffeineDPoPSingleUseChecker(),
                     () -> List.of(CURRENT_NONCE, OLD_NONCE)));

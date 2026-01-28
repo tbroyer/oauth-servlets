@@ -18,11 +18,11 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.KeycloakTokenPrincipal;
 import net.ltgt.oauth.common.TokenFilterHelper;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
 import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import net.ltgt.oauth.common.fixtures.Helpers;
@@ -64,8 +64,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void noAuthentication() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -109,8 +108,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void badAuthScheme() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -154,8 +152,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void badAuthScheme2() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -199,8 +196,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void missingToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -245,8 +241,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void missingToken2() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -291,8 +286,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void invalidToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -337,8 +331,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void validToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -385,8 +378,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void validTokenInSecondAuthorizationHeader() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
     sut.filter(
         REQUEST_METHOD,
@@ -434,8 +426,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void revokedButCachedToken() throws Exception {
     var called = new AtomicBoolean();
-    var sut =
-        BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
     var chain =
         new TokenFilterHelper.FilterChain<Exception>() {
           @Override
@@ -497,7 +488,7 @@ public class BearerTokenFilterHelperTest {
   @Test
   public void validTokenNoTokenPrincipal() throws Exception {
     var called = new AtomicBoolean();
-    var sut = BearerTokenFilterHelper.FACTORY.create(tokenIntrospector, ignored -> null);
+    var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, ignored -> null);
 
     sut.filter(
         REQUEST_METHOD,
@@ -546,9 +537,7 @@ public class BearerTokenFilterHelperTest {
     @Test
     public void validDPoPTokenUsedAsBearer() throws Exception {
       var called = new AtomicBoolean();
-      var sut =
-          BearerTokenFilterHelper.FACTORY.create(
-              tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+      var sut = TokenTypeSupport.BEARER.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
       sut.filter(
           REQUEST_METHOD,

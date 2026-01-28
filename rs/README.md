@@ -58,9 +58,9 @@ Custom implementations can also read additional data (e.g. from a database) to e
 
 ### DPoP
 
-To accept DPoP tokens, register a `TokenFilterHelperFactory` (either `DPoPTokenFilterHelper.Factory` or `DPoPOrBearerTokenFilterHelper.Factory`) as a `Configuration` property.
+To accept DPoP tokens, register a `TokenTypeSupport` (either `dpop` or `dpopOrBearer`) as a `Configuration` property.
 
-You're encouraged to provide a _single use checker_ to the factory to check DPoP proofs' `jti` claims and prevent replays.  OAuth-RS provides `CaffeineDPoPSingleUseChecker` as an implementation based on a Caffeine cache.
+You're encouraged to provide a _single use checker_ to the factory method to check DPoP proofs' `jti` claims and prevent replays. OAuth-RS provides `CaffeineDPoPSingleUseChecker` as an implementation based on a Caffeine cache.
 
 You can also optionally provide a `DPoPNonceSupplier` to require using DPoP nonces.
 

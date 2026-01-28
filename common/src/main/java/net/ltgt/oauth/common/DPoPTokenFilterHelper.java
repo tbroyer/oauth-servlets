@@ -33,9 +33,9 @@ import org.jspecify.annotations.Nullable;
 /**
  * Authenticates the request using a DPoP token and introspecting it, if provided in the request.
  */
-public class DPoPTokenFilterHelper implements TokenFilterHelper {
+class DPoPTokenFilterHelper implements TokenFilterHelper {
 
-  public static class Factory implements TokenFilterHelperFactory {
+  static class Factory implements TokenTypeSupport {
 
     public static final long DEFAULT_MAX_CLOCK_SKEW_SECONDS =
         DefaultJWTClaimsVerifier.DEFAULT_MAX_CLOCK_SKEW_SECONDS;

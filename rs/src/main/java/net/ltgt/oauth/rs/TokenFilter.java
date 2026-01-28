@@ -21,14 +21,13 @@ import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenErrorHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
-import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.TokenPrincipalProvider;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -96,19 +95,18 @@ public class TokenFilter implements ContainerRequestFilter, ContainerResponseFil
   }
 
   /**
-   * Returns the configured {@link TokenFilterHelperFactory}.
+   * Returns the configured {@link TokenTypeSupport}.
    *
    * @implSpec The default implementation gets it from the {@linkplain TokenFilter(Configuration)
    *     injected} configuration.
    */
   @ForOverride
-  protected TokenFilterHelperFactory getTokenFilterHelperFactory() {
+  protected TokenTypeSupport getTokenFilterHelperFactory() {
     var tokenFilterHelperFactory =
-        (TokenFilterHelperFactory)
-            requireNonNull(configuration)
-                .getProperty(TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME);
+        (TokenTypeSupport)
+            requireNonNull(configuration).getProperty(TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME);
     if (tokenFilterHelperFactory == null) {
-      return BearerTokenFilterHelper.FACTORY;
+      return TokenTypeSupport.BEARER;
     }
     return tokenFilterHelperFactory;
   }

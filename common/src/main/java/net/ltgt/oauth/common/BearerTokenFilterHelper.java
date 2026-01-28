@@ -19,13 +19,12 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 import org.jspecify.annotations.Nullable;
 
-public class BearerTokenFilterHelper implements TokenFilterHelper {
-  public static final TokenFilterHelperFactory FACTORY = BearerTokenFilterHelper::new;
+class BearerTokenFilterHelper implements TokenFilterHelper {
 
   private final TokenIntrospector tokenIntrospector;
   private final TokenPrincipalProvider tokenPrincipalProvider;
 
-  private BearerTokenFilterHelper(
+  BearerTokenFilterHelper(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);

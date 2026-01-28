@@ -19,14 +19,13 @@ import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
-import net.ltgt.oauth.common.BearerTokenFilterHelper;
 import net.ltgt.oauth.common.SimpleTokenPrincipal;
 import net.ltgt.oauth.common.TokenErrorHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
-import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenIntrospector;
 import net.ltgt.oauth.common.TokenPrincipal;
 import net.ltgt.oauth.common.TokenPrincipalProvider;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -45,7 +44,7 @@ import org.jspecify.annotations.Nullable;
 public class TokenFilter extends HttpFilter {
   private TokenIntrospector tokenIntrospector;
   private TokenPrincipalProvider tokenPrincipalProvider;
-  private TokenFilterHelperFactory tokenFilterHelperFactory;
+  private TokenTypeSupport tokenFilterHelperFactory;
   private TokenFilterHelper tokenFilterHelper;
 
   public TokenFilter() {}
@@ -58,7 +57,7 @@ public class TokenFilter extends HttpFilter {
    */
   public TokenFilter(
       TokenIntrospector tokenIntrospector, TokenPrincipalProvider tokenPrincipalProvider) {
-    this(tokenIntrospector, tokenPrincipalProvider, BearerTokenFilterHelper.FACTORY);
+    this(tokenIntrospector, tokenPrincipalProvider, TokenTypeSupport.BEARER);
   }
 
   /**
@@ -70,7 +69,7 @@ public class TokenFilter extends HttpFilter {
   public TokenFilter(
       TokenIntrospector tokenIntrospector,
       TokenPrincipalProvider tokenPrincipalProvider,
-      TokenFilterHelperFactory tokenFilterHelperFactory) {
+      TokenTypeSupport tokenFilterHelperFactory) {
     this.tokenIntrospector = requireNonNull(tokenIntrospector);
     this.tokenPrincipalProvider = requireNonNull(tokenPrincipalProvider);
     this.tokenFilterHelperFactory = requireNonNull(tokenFilterHelperFactory);
@@ -95,11 +94,11 @@ public class TokenFilter extends HttpFilter {
     }
     if (tokenFilterHelperFactory == null) {
       tokenFilterHelperFactory =
-          (TokenFilterHelperFactory)
-              getServletContext().getAttribute(TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME);
+          (TokenTypeSupport)
+              getServletContext().getAttribute(TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME);
     }
     if (tokenFilterHelperFactory == null) {
-      tokenFilterHelperFactory = BearerTokenFilterHelper.FACTORY;
+      tokenFilterHelperFactory = TokenTypeSupport.BEARER;
     }
     this.tokenFilterHelper =
         tokenFilterHelperFactory.create(tokenIntrospector, tokenPrincipalProvider);

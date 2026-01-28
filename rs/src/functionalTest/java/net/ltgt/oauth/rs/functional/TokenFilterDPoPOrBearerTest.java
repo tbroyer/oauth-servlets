@@ -23,10 +23,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.ltgt.oauth.common.CaffeineDPoPSingleUseChecker;
-import net.ltgt.oauth.common.DPoPOrBearerTokenFilterHelper;
 import net.ltgt.oauth.common.TokenFilterHelper;
-import net.ltgt.oauth.common.TokenFilterHelperFactory;
 import net.ltgt.oauth.common.TokenPrincipal;
+import net.ltgt.oauth.common.TokenTypeSupport;
 import net.ltgt.oauth.common.fixtures.BearerTokenExtension;
 import net.ltgt.oauth.common.fixtures.DPoPTokenExtension;
 import org.jboss.resteasy.mock.MockHttpRequest;
@@ -60,8 +59,8 @@ public class TokenFilterDPoPOrBearerTest {
             dispatcher
                 .getProviderFactory()
                 .property(
-                    TokenFilterHelperFactory.CONTEXT_ATTRIBUTE_NAME,
-                    new DPoPOrBearerTokenFilterHelper.Factory(
+                    TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+                    TokenTypeSupport.dpopOrBearer(
                         ALGS,
                         new CaffeineDPoPSingleUseChecker(),
                         () -> List.of(CURRENT_NONCE, OLD_NONCE)));
