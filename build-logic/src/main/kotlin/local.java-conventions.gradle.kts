@@ -24,6 +24,7 @@ dependencies {
 
 nullaway {
     onlyNullMarked = true
+    jspecifyMode = true
 }
 
 java {
@@ -47,7 +48,6 @@ tasks.withType<JavaCompile>().configureEach {
         enable("DefaultLocale")
         error("RequireExplicitNullMarking")
         nullaway {
-            isJSpecifyMode = true
             knownInitializers.addAll(
                 "jakarta.servlet.Servlet.init",
                 "jakarta.servlet.GenericServlet.init",
