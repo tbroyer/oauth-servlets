@@ -3,7 +3,7 @@
 errorprone = "2.46.0"
 jetty = "12.1.5"
 junitJupiter = "6.0.2"
-nullaway = "0.13.0"
+nullaway = "0.13.1"
 
 # Versions used in build-logic
 googleJavaFormat = "1.33.0"
@@ -21,7 +21,7 @@ jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet" }
 jetty-slf4jImpl = { module = "org.eclipse.jetty:jetty-slf4j-impl" }
 jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
-nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.31.1"
+nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.32"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
 resteasy-bom = "org.jboss.resteasy:resteasy-bom:7.0.1.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
@@ -43,5 +43,5 @@ errorprone = [ "errorprone-core", "nullaway" ]
 errorprone = "net.ltgt.errorprone:5.0.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.5"
 nullaway = "net.ltgt.nullaway:3.0.0"
-spotless = "com.diffplug.spotless:8.2.0"
+spotless = "com.diffplug.spotless:8.2.1"
 vanniktechMavenPublish = "com.vanniktech.maven.publish:0.36.0"
