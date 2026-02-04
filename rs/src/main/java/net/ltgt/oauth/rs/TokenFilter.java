@@ -55,7 +55,7 @@ public class TokenFilter implements ContainerRequestFilter, ContainerResponseFil
    *
    * <p>When this constructor is used by a subclass, it must override {@link
    * #getTokenIntrospector()}, {@link #getTokenPrincipalProvider()}, and {@link
-   * #getTokenFilterHelperFactory()}.
+   * #getTokenTypeSupport()}.
    */
   protected TokenFilter() {}
 
@@ -101,7 +101,7 @@ public class TokenFilter implements ContainerRequestFilter, ContainerResponseFil
    *     injected} configuration.
    */
   @ForOverride
-  protected TokenTypeSupport getTokenFilterHelperFactory() {
+  protected TokenTypeSupport getTokenTypeSupport() {
     var tokenFilterHelperFactory =
         (TokenTypeSupport)
             requireNonNull(configuration).getProperty(TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME);
@@ -117,7 +117,7 @@ public class TokenFilter implements ContainerRequestFilter, ContainerResponseFil
       return;
     }
     var tokenFilterHelper =
-        getTokenFilterHelperFactory().create(getTokenIntrospector(), getTokenPrincipalProvider());
+        getTokenTypeSupport().create(getTokenIntrospector(), getTokenPrincipalProvider());
     requestContext.setProperty(
         TokenErrorHelper.REQUEST_ATTRIBUTE_NAME, new TokenErrorHelper(tokenFilterHelper));
     tokenFilterHelper.filter(
