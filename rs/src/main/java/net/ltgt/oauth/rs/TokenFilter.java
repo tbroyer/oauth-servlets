@@ -54,9 +54,8 @@ public class TokenFilter implements ContainerRequestFilter, ContainerResponseFil
    * Constructs a filter without configuration.
    *
    * <p>When this constructor is used by a subclass, it must override {@link
-   * #getTokenIntrospector()} and {@link #getTokenPrincipalProvider()}, and can override {@link
-   * #getTokenTypeSupport()} to return a different value than the default {@link
-   * TokenTypeSupport#BEARER}.
+   * #getTokenIntrospector()}, and can override {@link #getTokenPrincipalProvider()} and {@link
+   * #getTokenTypeSupport()} to return a different value than their default.
    */
   protected TokenFilter() {}
 
@@ -81,14 +80,15 @@ public class TokenFilter implements ContainerRequestFilter, ContainerResponseFil
    * Returns the configured {@link TokenPrincipalProvider}.
    *
    * @implSpec The default implementation gets it from the {@linkplain TokenFilter(Configuration)
-   *     injected} configuration.
+   *     injected} configuration if any, defaulting to {@link SimpleTokenPrincipal#PROVIDER}.
    */
   @ForOverride
   protected TokenPrincipalProvider getTokenPrincipalProvider() {
     var tokenPrincipalProvider =
-        (TokenPrincipalProvider)
-            requireNonNull(configuration)
-                .getProperty(TokenPrincipalProvider.CONTEXT_ATTRIBUTE_NAME);
+        configuration == null
+            ? null
+            : (TokenPrincipalProvider)
+                configuration.getProperty(TokenPrincipalProvider.CONTEXT_ATTRIBUTE_NAME);
     if (tokenPrincipalProvider == null) {
       return SimpleTokenPrincipal.PROVIDER;
     }
