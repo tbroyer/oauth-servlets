@@ -334,7 +334,9 @@ public class TokenFilterDPoPTest {
         MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
     request.header(
         TokenFilterHelper.DPOP_HEADER_NAME,
-        client.createDPoPJWT("POST", request.getUri().getAbsolutePath(), token, null).serialize());
+        client
+            .createDPoPJWT(request.getHttpMethod(), request.getUri().getAbsolutePath(), token, null)
+            .serialize());
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(DPoPTokenError.USE_DPOP_NONCE.getHTTPStatusCode());
@@ -360,7 +362,8 @@ public class TokenFilterDPoPTest {
     request.header(
         TokenFilterHelper.DPOP_HEADER_NAME,
         client
-            .createDPoPJWT("POST", request.getUri().getAbsolutePath(), token, new Nonce())
+            .createDPoPJWT(
+                request.getHttpMethod(), request.getUri().getAbsolutePath(), token, new Nonce())
             .serialize());
     var response = new MockHttpResponse();
     server.invoke(request, response);
@@ -377,6 +380,28 @@ public class TokenFilterDPoPTest {
                 .map(String.class::cast)
                 .toList())
         .containsExactly(CURRENT_NONCE.getValue());
+  }
+
+  @Test
+  public void invalidDPoPProofWithBadNonce() throws Exception {
+    var token = client.get();
+    var request =
+        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+    request.header(
+        TokenFilterHelper.DPOP_HEADER_NAME,
+        client
+            .createDPoPJWT("POST", request.getUri().getAbsolutePath(), token, new Nonce())
+            .serialize());
+    var response = new MockHttpResponse();
+    server.invoke(request, response);
+    assertThat(response.getStatus())
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+    var wwwAuthenticate = response.getOutputHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(wwwAuthenticate).isInstanceOf(String.class);
+    assertThat(DPoPTokenError.parse((String) wwwAuthenticate))
+        .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS));
+    assertThat(response.getOutputHeaders())
+        .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
   }
 
   @Test

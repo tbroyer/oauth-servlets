@@ -832,7 +832,7 @@ public class DPoPOrBearerTokenFilterHelperTest {
     }
 
     @Test
-    public void invalidDPoPProof_containsNonce() throws Exception {
+    public void invalidDPoPProof_extraneousNonce() throws Exception {
       var called = new AtomicBoolean();
       var sut = factory.create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
 
@@ -1472,6 +1472,58 @@ public class DPoPOrBearerTokenFilterHelperTest {
                         DPoPTokenError.USE_DPOP_NONCE.setJWSAlgorithms(ALGS),
                         BearerTokenError.MISSING_TOKEN);
                 assertThat(dpopNonce).isEqualTo(nonce);
+              }
+
+              @Override
+              public void sendError(int statusCode, String message, @Nullable Throwable cause) {
+                fail();
+              }
+            });
+        assertThat(called.get()).isTrue();
+      }
+
+      @Test
+      public void invalidDPoPProofWithBadNonce() throws Exception {
+        var called = new AtomicBoolean();
+        var nonce = new Nonce();
+        var sut =
+            TokenTypeSupport.dpopOrBearer(
+                    ALGS, new CaffeineDPoPSingleUseChecker(), () -> List.of(nonce))
+                .create(tokenIntrospector, KeycloakTokenPrincipal.PROVIDER);
+
+        var token = client.get();
+        sut.filter(
+            REQUEST_METHOD,
+            REQUEST_URI,
+            List.of(token.toAuthorizationHeader()),
+            List.of(client.createDPoPJWT("POST", REQUEST_URI, token, new Nonce()).serialize()),
+            null,
+            new TokenFilterHelper.FilterChain<Exception>() {
+              @Override
+              public void continueChain(@Nullable Nonce dpopNonce) {
+                fail();
+              }
+
+              @Override
+              public void continueChain(
+                  String authenticationScheme,
+                  TokenPrincipal tokenPrincipal,
+                  @Nullable Nonce dpopNonce) {
+                fail();
+              }
+
+              @Override
+              public void sendError(
+                  List<TokenSchemeError> errors,
+                  @Nullable Nonce dpopNonce,
+                  String message,
+                  @Nullable Throwable cause) {
+                called.set(true);
+                assertThat(errors)
+                    .containsExactly(
+                        DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
+                        BearerTokenError.MISSING_TOKEN);
+                assertThat(dpopNonce).isNull();
               }
 
               @Override

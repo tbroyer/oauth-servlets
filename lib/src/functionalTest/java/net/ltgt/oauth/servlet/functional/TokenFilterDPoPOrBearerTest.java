@@ -506,6 +506,29 @@ public class TokenFilterDPoPOrBearerTest {
     }
 
     @Test
+    public void invalidDPoPProofWithBadNonce() throws Exception {
+      var token = client.get();
+      var request = HttpTester.newRequest();
+      request.setMethod("GET");
+      request.setURI("/");
+      request.put(HttpHeader.AUTHORIZATION, token.toAuthorizationHeader());
+      request.put(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT("POST", server.getURI(request.getURI()), token, new Nonce())
+              .serialize());
+      var response = server.getResponse(request);
+      assertThat(response.getStatus())
+          .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+      var wwwAuthenticates = getWwwAuthenticate(response);
+      assertThat(wwwAuthenticates)
+          .containsExactly(
+              DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
+              BearerTokenError.MISSING_TOKEN);
+      assertThat(response.contains(TokenFilterHelper.DPOP_NONCE_HEADER_NAME)).isFalse();
+    }
+
+    @Test
     public void replayedDPoPProof() throws Exception {
       var token = client.get();
       var request = HttpTester.newRequest();

@@ -481,7 +481,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT("POST", request.getUri().getAbsolutePath(), token, null)
+              .createDPoPJWT(
+                  request.getHttpMethod(), request.getUri().getAbsolutePath(), token, null)
               .serialize());
       var response = new MockHttpResponse();
       server.invoke(request, response);
@@ -508,7 +509,8 @@ public class TokenFilterDPoPOrBearerTest {
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
-              .createDPoPJWT("POST", request.getUri().getAbsolutePath(), token, new Nonce())
+              .createDPoPJWT(
+                  request.getHttpMethod(), request.getUri().getAbsolutePath(), token, new Nonce())
               .serialize());
       var response = new MockHttpResponse();
       server.invoke(request, response);
@@ -525,6 +527,29 @@ public class TokenFilterDPoPOrBearerTest {
                   .map(String.class::cast)
                   .toList())
           .containsExactly(CURRENT_NONCE.getValue());
+    }
+
+    @Test
+    public void invalidDPoPProofWithBadNonce() throws Exception {
+      var token = client.get();
+      var request =
+          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+      request.header(
+          TokenFilterHelper.DPOP_HEADER_NAME,
+          client
+              .createDPoPJWT("POST", request.getUri().getAbsolutePath(), token, new Nonce())
+              .serialize());
+      var response = new MockHttpResponse();
+      server.invoke(request, response);
+      assertThat(response.getStatus())
+          .isEqualTo(DPoPTokenError.INVALID_DPOP_PROOF.getHTTPStatusCode());
+      var wwwAuthenticates = getWwwAuthenticate(response.getOutputHeaders());
+      assertThat(wwwAuthenticates)
+          .containsExactly(
+              DPoPTokenError.INVALID_DPOP_PROOF.setJWSAlgorithms(ALGS),
+              BearerTokenError.MISSING_TOKEN);
+      assertThat(response.getOutputHeaders())
+          .doesNotContainKey(TokenFilterHelper.DPOP_NONCE_HEADER_NAME);
     }
 
     @Test

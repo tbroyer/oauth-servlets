@@ -118,7 +118,6 @@ class Utils {
       DPoPAccessToken token)
       throws DPoPException {
     final var dpopNonce = extractDPoPNonce(dpopProof);
-    final var currentNonce = checkDPoPNonce(dpopNonceSupplier, dpopNonce);
     try {
       verifier.verify(
           method,
@@ -127,11 +126,13 @@ class Utils {
           dpopProof,
           token,
           introspectionResponse.getJWKThumbprintConfirmation(),
-          // we checked the nonce above, so "fake" it here by checking it against itself
+          // check the nonce against itself to avoid nonce-related errors
+          // nonce will be checked below
           dpopNonce);
     } catch (AccessTokenValidationException | InvalidDPoPProofException | JOSEException e) {
       throw new DPoPException(DPoPTokenError.INVALID_DPOP_PROOF, null, "Invalid DPoP proof", e);
     }
+    final var currentNonce = checkDPoPNonce(dpopNonceSupplier, dpopNonce);
     return Objects.equals(currentNonce, dpopNonce) ? null : currentNonce;
   }
 
