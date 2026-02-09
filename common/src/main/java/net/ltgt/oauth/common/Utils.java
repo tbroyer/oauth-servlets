@@ -11,6 +11,7 @@ import com.nimbusds.oauth2.sdk.auth.X509CertificateConfirmation;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.AccessTokenValidationException;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPIssuer;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPProtectedResourceRequestVerifier;
+import com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPNonceException;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPProofException;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
@@ -21,6 +22,7 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 class Utils {
@@ -117,7 +119,9 @@ class Utils {
       SignedJWT dpopProof,
       DPoPAccessToken token)
       throws DPoPException {
-    final var dpopNonce = extractDPoPNonce(dpopProof);
+    final var nonces =
+        dpopNonceSupplier == null ? null : requireNonNull(dpopNonceSupplier.getNonces());
+    final var currentNonce = nonces == null ? null : requireNonNull(nonces.getFirst());
     try {
       verifier.verify(
           method,
@@ -126,13 +130,25 @@ class Utils {
           dpopProof,
           token,
           introspectionResponse.getJWKThumbprintConfirmation(),
-          // check the nonce against itself to avoid nonce-related errors
-          // nonce will be checked below
-          dpopNonce);
+          nonces == null ? null : Set.copyOf(nonces),
+          null);
+    } catch (InvalidDPoPNonceException e) {
+      if (currentNonce == null) {
+        throw new DPoPException(
+            DPoPTokenError.INVALID_DPOP_PROOF, null, "Invalid DPoP proof (extraneous nonce)", null);
+      }
+      throw new DPoPException(
+          DPoPTokenError.USE_DPOP_NONCE,
+          currentNonce,
+          "Invalid DPoP proof (missing or invalid nonce)",
+          null);
     } catch (AccessTokenValidationException | InvalidDPoPProofException | JOSEException e) {
       throw new DPoPException(DPoPTokenError.INVALID_DPOP_PROOF, null, "Invalid DPoP proof", e);
     }
-    final var currentNonce = checkDPoPNonce(dpopNonceSupplier, dpopNonce);
+    if (currentNonce == null) {
+      return null;
+    }
+    final var dpopNonce = extractDPoPNonce(dpopProof);
     return Objects.equals(currentNonce, dpopNonce) ? null : currentNonce;
   }
 
@@ -140,29 +156,8 @@ class Utils {
     try {
       return Nonce.parse(dpopProof.getJWTClaimsSet().getStringClaim("nonce"));
     } catch (java.text.ParseException e) {
+      // This should never happen as the DPoP proof has already been validated
       throw new DPoPException(DPoPTokenError.INVALID_DPOP_PROOF, null, "Invalid DPoP proof", e);
     }
-  }
-
-  private static @Nullable Nonce checkDPoPNonce(
-      @Nullable DPoPNonceSupplier dpopNonceSupplier, @Nullable Nonce dpopNonce)
-      throws DPoPException {
-    if (dpopNonceSupplier == null) {
-      if (dpopNonce != null) {
-        throw new DPoPException(
-            DPoPTokenError.INVALID_DPOP_PROOF, null, "Invalid DPoP proof (extraneous nonce)", null);
-      }
-      return null;
-    }
-    var nonces = dpopNonceSupplier.getNonces();
-    var currentNonce = nonces.getFirst();
-    if (dpopNonce == null || !nonces.contains(dpopNonce)) {
-      throw new DPoPException(
-          DPoPTokenError.USE_DPOP_NONCE,
-          currentNonce,
-          "Invalid DPoP proof (missing or invalid nonce)",
-          null);
-    }
-    return currentNonce;
   }
 }
