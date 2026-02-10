@@ -10,6 +10,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
+/** Internal interface used by {@code TokenFilter}. */
 public interface TokenFilterHelper {
   String X509_CERTIFICATE_REQUEST_ATTRIBUTE_NAME = "jakarta.servlet.request.X509Certificate";
 
@@ -35,6 +36,7 @@ public interface TokenFilterHelper {
       FilterChain<E> chain)
       throws IOException, E;
 
+  /** Internal interface used by {@code TokenFilter}. */
   interface FilterChain<E extends Exception> {
     void continueChain(@Nullable Nonce dpopNonce) throws IOException, E;
 

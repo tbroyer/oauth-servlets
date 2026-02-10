@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.ext.Provider;
 import net.ltgt.oauth.common.TokenPrincipal;
 
+/** Ensures the user {@linkplain SecurityContext#getUserPrincipal is authenticated}. */
 @IsAuthenticated
 @Provider
 @Priority(Priorities.AUTHORIZATION)

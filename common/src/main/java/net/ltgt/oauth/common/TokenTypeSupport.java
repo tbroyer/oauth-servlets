@@ -12,9 +12,13 @@ import org.jspecify.annotations.Nullable;
  * {@linkplain TokenFilterHelper platform-independent implementation} for the selected token
  * type(s).
  *
- * <p>An instance of this class needs to be registered as a {@code ServletContext} attribute or
- * JAX-RS {@code Configuration} property under the name {@link #CONTEXT_ATTRIBUTE_NAME}. If no such
- * instance is configured, {@code TokenFilter} will default to using {@link #BEARER}.
+ * <p>An instance implementing this interface needs to be registered as a {@code ServletContext}
+ * attribute or JAX-RS {@code Configuration} property under the name {@link
+ * #CONTEXT_ATTRIBUTE_NAME}. If no such instance is configured, {@code TokenFilter} will default to
+ * using {@link #BEARER}.
+ *
+ * <p>Use the {@link #BEARER} constant or one of the static methods to create an instance
+ * implementing this interface.
  */
 public interface TokenTypeSupport {
   String CONTEXT_ATTRIBUTE_NAME = TokenTypeSupport.class.getName();
@@ -81,8 +85,8 @@ public interface TokenTypeSupport {
   }
 
   /**
-   * Creates a new {@link TokenFilterHelper} instance with the given token introspector and token
-   * principal provider.
+   * Called by {@code TokenFilter} to create a new {@link TokenFilterHelper} instance with the given
+   * token introspector and token principal provider.
    */
   @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
   TokenFilterHelper create(

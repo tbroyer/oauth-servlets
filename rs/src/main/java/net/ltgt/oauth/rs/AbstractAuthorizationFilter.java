@@ -99,7 +99,7 @@ public abstract class AbstractAuthorizationFilter implements ContainerRequestFil
   /**
    * Creates an error response corresponding to the {@link BearerTokenError}.
    *
-   * @implSpec The default implementation sets the {@linkplain Response#getStatus} status code} to
+   * @implSpec The default implementation sets the {@linkplain Response#getStatus status code} to
    *     the {@linkplain TokenSchemeError#getHTTPStatusCode() first error's status code}, and adds
    *     {@link HttpHeaders#WWW_AUTHENTICATE WWW-Authenticate} headers from {@linkplain
    *     BearerTokenError#toWWWAuthenticateHeader() the errors} and an optional {@code DPoP-Nonce}

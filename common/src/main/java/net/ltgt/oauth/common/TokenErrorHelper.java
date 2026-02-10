@@ -7,6 +7,7 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
+/** Internal class used by {@code TokenFilter} and {@code AbstractAuthorizationFilter}. */
 public class TokenErrorHelper {
   public static final String REQUEST_ATTRIBUTE_NAME = TokenErrorHelper.class.getName();
 

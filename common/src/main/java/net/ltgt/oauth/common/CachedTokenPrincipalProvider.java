@@ -16,11 +16,11 @@ import org.jspecify.annotations.Nullable;
  * Base class for {@link TokenPrincipal} providers whose values should be cached because they're
  * somewhat costly to create (for instance because they need to load data from a database).
  *
- * <p>The {@link #newInstance} static factories can be used to wrap an existing {@link
+ * <p>The {@code newInstance(…)} static factories can be used to wrap an existing {@link
  * TokenPrincipalProvider} to cache its values.
  *
- * <p>The cache uses {@link Optional} values to cache {@code null} values returned by {@link #load}
- * or the wrapped {@link TokenPrincipalProvider}.
+ * <p>The cache uses {@link Optional} values to cache {@code null} values returned by {@link
+ * #load(TokenIntrospectionSuccessResponse)} or the wrapped {@link TokenPrincipalProvider}.
  */
 public abstract class CachedTokenPrincipalProvider implements TokenPrincipalProvider {
   private final LoadingCache<TokenIntrospectionSuccessResponse, Optional<TokenPrincipal>> cache;

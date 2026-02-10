@@ -81,6 +81,9 @@ tasks.withType<Javadoc>().configureEach {
             "https://javadoc.io/doc/com.nimbusds/oauth2-oidc-sdk/latest/",
             rootProject.file("build-logic/src/javadoc-link/nimbusds-oidc-sdk/").toRelativeString(projectDir)
         )
+        tags(
+            "implSpec:a:Implementation Specification:",
+        )
     }
 }
 
