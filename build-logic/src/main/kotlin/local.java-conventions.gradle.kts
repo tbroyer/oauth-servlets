@@ -15,6 +15,9 @@ jvmDependencyConflicts {
         module("com.google.truth:truth") {
             reduceToRuntimeOnlyDependency("junit:junit")
         }
+        module("com.google.guava:guava-testlib") {
+            reduceToRuntimeOnlyDependency("junit:junit")
+        }
     }
 }
 

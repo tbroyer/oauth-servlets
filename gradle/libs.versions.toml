@@ -12,6 +12,7 @@ ktlint = "1.8.0"
 [libraries]
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
+guava-testlib = "com.google.guava:guava-testlib:33.5.0-jre"
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
 jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
 jakarta-servletApi = "jakarta.servlet:jakarta.servlet-api:6.0.0"

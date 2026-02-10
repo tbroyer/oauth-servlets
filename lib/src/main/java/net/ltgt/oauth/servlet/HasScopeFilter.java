@@ -45,7 +45,7 @@ public class HasScopeFilter extends AbstractAuthorizationFilter {
    * <p>When this constructor is used, the {@link #SCOPE} init parameter won't be read.
    */
   public HasScopeFilter(String scope) {
-    this(new Scope.Value(scope));
+    this(new Scope.Value(requireNonNull(scope)));
   }
 
   /**

@@ -35,6 +35,7 @@ testing {
         named<JvmTestSuite>("test") {
             dependencies {
                 implementation(libs.truth)
+                implementation(libs.guava.testlib)
             }
         }
         register<JvmTestSuite>("functionalTest") {
