@@ -12,7 +12,7 @@ You will need Docker Compose to run the tests locally (e.g. to contribute).
 ## Usage
 
 Add a dependency on [`net.ltgt.oauth:oauth-rs`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-rs). You can also use the [`net.ltgt.oauth:oauth-bom`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-bom) BOM to make sure the library uses the same version of its [`net.ltgt.oauth:oauth-common`](https://central.sonatype.com/artifact/net.ltgt.oauth/oauth-common) dependency (and possibly align the version with OAuth-Servlets when used conjointly).
-You should also add a dependency on [`com.nimbusds:oauth2-oidc-sdk`](https://central.sonatype.com/artifact/com.nimbusds/oauth2-oidc-sdk) so you can keep it up-to-date independently of OAuth-RS.
+You should also add dependencies on [`com.nimbusds:oauth2-oidc-sdk`](https://central.sonatype.com/artifact/com.nimbusds/oauth2-oidc-sdk) and [`com.nimbusds:nimbus-jose-jwt`](https://central.sonatype.com/artifact/com.nimbusds/nimbus-jose-jwt) so you can keep them up-to-date independently of OAuth-RS.
 
 Create a `TokenIntrospector` object and add it as a property to a `Configuration` (most likely at the `Application` level):
 

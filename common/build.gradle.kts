@@ -11,6 +11,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.errorprone.annotations)
     api(libs.nimbus.oauthSdk)
+    api(libs.nimbus.joseJwt)
     api(libs.caffeine)
 
     testFixturesApi(libs.junitJupiter.api)
