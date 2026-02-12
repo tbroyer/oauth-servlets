@@ -8,6 +8,9 @@ dependencies {
     api(platform(projects.oauthBom))
 
     api(projects.oauthCommon)
+    api(libs.jspecify)
+    api(libs.errorprone.annotations)
+    api(libs.nimbus.oauthSdk)
     api(libs.jakarta.annotationApi)
     api(libs.jakarta.rsApi)
 }

@@ -12,7 +12,6 @@ dependencies {
     api(libs.errorprone.annotations)
     api(libs.nimbus.oauthSdk)
     api(libs.jakarta.servletApi)
-    api(libs.caffeine)
 }
 
 testing {
