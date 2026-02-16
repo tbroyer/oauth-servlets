@@ -43,6 +43,7 @@ com.nimbusds.openid.connect.sdk.federation.trust.constraints
 com.nimbusds.openid.connect.sdk.federation.trust.marks
 com.nimbusds.openid.connect.sdk.federation.utils
 com.nimbusds.openid.connect.sdk.id
+com.nimbusds.openid.connect.sdk.nativesso
 com.nimbusds.openid.connect.sdk.op
 com.nimbusds.openid.connect.sdk.rp
 com.nimbusds.openid.connect.sdk.rp.statement
