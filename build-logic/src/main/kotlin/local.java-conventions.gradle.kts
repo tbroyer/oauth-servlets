@@ -95,6 +95,9 @@ tasks.withType<Javadoc>().configureEach {
         linksOffline(
             "https://javadoc.io/doc/com.github.ben-manes.caffeine/caffeine/latest/",
             rootProject.file("build-logic/src/javadoc-link/caffeine/").toRelativeString(projectDir))
+        linksOffline(
+            "https://javadoc.io/doc/net.ltgt.oauth/oauth-common/$version/",
+            rootProject.file("build-logic/src/javadoc-link/oauth-common/").toRelativeString(projectDir))
         tags(
             "implSpec:a:Implementation Specification:",
         )
