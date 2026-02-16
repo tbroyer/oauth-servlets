@@ -47,6 +47,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
         enable("DefaultLocale")
         error("RequireExplicitNullMarking")
+        error("WildcardImport")
         nullaway {
             knownInitializers.addAll(
                 "jakarta.servlet.Servlet.init",
@@ -106,7 +107,10 @@ tasks.withType<Javadoc>().configureEach {
 
 spotless {
     java {
-        googleJavaFormat(project.versionCatalogs.named("libs").findVersion("googleJavaFormat").orElseThrow().requiredVersion)
+        removeUnusedImports()
+        forbidWildcardImports()
+        forbidModuleImports()
+        googleJavaFormat(project.versionCatalogs.named("libs").findVersion("googleJavaFormat").orElseThrow().requiredVersion).reorderImports(true)
         licenseHeaderFile(rootProject.file("LICENSE.header"))
     }
 }
