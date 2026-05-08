@@ -1,7 +1,7 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
 errorprone = "2.49.0"
-jetty = "12.1.8"
+jetty = "12.1.9"
 junitJupiter = "6.0.3"
 nullaway = "0.13.4"
 
@@ -10,7 +10,7 @@ googleJavaFormat = "1.35.0"
 ktlint = "1.8.0"
 
 [libraries]
-caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.3"
+caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.4"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
 guava-testlib = "com.google.guava:guava-testlib:33.6.0-jre"
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
@@ -23,7 +23,7 @@ jetty-slf4jImpl = { module = "org.eclipse.jetty:jetty-slf4j-impl" }
 jspecify = "org.jspecify:jspecify:1.0.0"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
 nimbus-joseJwt = "com.nimbusds:nimbus-jose-jwt:10.9"
-nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.37"
+nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.37.1"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
 resteasy-bom = "org.jboss.resteasy:resteasy-bom:7.0.2.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
