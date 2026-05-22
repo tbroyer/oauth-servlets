@@ -17,6 +17,17 @@
     "optionalClientScopes": [
       "test1",
       "test2"
+    ],
+    "protocolMappers": [
+      {
+        "name": "audience-api",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-audience-mapper",
+        "config": {
+          "included.client.audience": "api",
+          "access.token.claim": "true"
+        }
+      }
     ]
   }, {
     "clientId": "api",
