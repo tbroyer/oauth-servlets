@@ -2,7 +2,7 @@
 [versions]
 errorprone = "2.50.0"
 jetty = "12.1.10"
-junitJupiter = "6.1.0"
+junitJupiter = "6.1.1"
 nullaway = "0.13.7"
 
 # Versions used in build-logic
@@ -45,5 +45,5 @@ errorprone = [ "errorprone-core", "nullaway" ]
 errorprone = "net.ltgt.errorprone:5.1.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.5"
 nullaway = "net.ltgt.nullaway:3.1.0"
-spotless = "com.diffplug.spotless:8.7.0"
+spotless = "com.diffplug.spotless:8.8.0"
 vanniktechMavenPublish = "com.vanniktech.maven.publish:0.37.0"
