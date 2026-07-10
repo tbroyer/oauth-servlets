@@ -1,7 +1,7 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
 errorprone = "2.50.0"
-jetty = "12.1.10"
+jetty = "12.1.11"
 junitJupiter = "6.1.1"
 nullaway = "0.13.7"
 
