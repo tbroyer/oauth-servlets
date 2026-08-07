@@ -6,7 +6,7 @@ junitJupiter = "6.1.2"
 nullaway = "0.13.8"
 
 # Versions used in build-logic
-googleJavaFormat = "1.35.0"
+googleJavaFormat = "1.36.1"
 ktlint = "1.8.0"
 
 [libraries]
@@ -20,12 +20,12 @@ jetty-bom = { module = "org.eclipse.jetty:jetty-bom", version.ref = "jetty" }
 jetty-ee10-bom = { module = "org.eclipse.jetty.ee10:jetty-ee10-bom", version.ref = "jetty" }
 jetty-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet" }
 jetty-slf4jImpl = { module = "org.eclipse.jetty:jetty-slf4j-impl" }
-jspecify = "org.jspecify:jspecify:1.0.0"
+jspecify = "org.jspecify:jspecify:1.0.1"
 junitJupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref="junitJupiter" }
 nimbus-joseJwt = "com.nimbusds:nimbus-jose-jwt:10.9.1"
 nimbus-oauthSdk = "com.nimbusds:oauth2-oidc-sdk:11.38.2"
 nullaway-annotations = { module = "com.uber.nullaway:nullaway-annotations", version.ref = "nullaway" }
-resteasy-bom = "org.jboss.resteasy:resteasy-bom:7.0.2.Final"
+resteasy-bom = "org.jboss.resteasy:resteasy-bom:7.0.3.Final"
 resteasy-core = { module = "org.jboss.resteasy:resteasy-core" }
 truth = "com.google.truth:truth:1.4.5"
 
