@@ -12,7 +12,7 @@ ktlint = "1.8.0"
 [libraries]
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.2.4"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
-guava-testlib = "com.google.guava:guava-testlib:33.6.0-jre"
+guava-testlib = "com.google.guava:guava-testlib:33.7.0-jre"
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
 jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
 jakarta-servletApi = "jakarta.servlet:jakarta.servlet-api:6.0.0"
@@ -45,5 +45,5 @@ errorprone = [ "errorprone-core", "nullaway" ]
 errorprone = "net.ltgt.errorprone:5.1.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.5"
 nullaway = "net.ltgt.nullaway:3.1.0"
-spotless = "com.diffplug.spotless:8.9.0"
+spotless = "com.diffplug.spotless:8.10.0"
 vanniktechMavenPublish = "com.vanniktech.maven.publish:0.37.0"
