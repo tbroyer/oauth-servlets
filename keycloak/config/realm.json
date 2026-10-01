@@ -11,6 +11,7 @@
   "clients": [ {
     "clientId": "app",
     "enabled": true,
+    "fullScopeAllowed": false,
     "clientAuthenticatorType": "client-secret",
     "secret": "$(env:APP_CLIENT_SECRET)",
     "serviceAccountsEnabled": true,
@@ -32,6 +33,7 @@
   }, {
     "clientId": "api",
     "enabled": true,
+    "fullScopeAllowed": false,
     "clientAuthenticatorType": "client-secret",
     "secret": "$(env:API_CLIENT_SECRET)"
   } ]
