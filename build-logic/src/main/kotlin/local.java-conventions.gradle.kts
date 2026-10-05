@@ -26,8 +26,11 @@ dependencies {
 }
 
 nullaway {
+    error()
     onlyNullMarked = true
     jspecifyMode = true
+    requireExplicitNullMarking { error() }
+    jspecifyUnrecognizedAnnotationLocation { error() }
 }
 
 java {
@@ -49,7 +52,6 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.addAll(arrayOf("-Werror", "-Xlint:all,-fallthrough,-serial"))
     options.errorprone {
         enable("DefaultLocale")
-        error("RequireExplicitNullMarking")
         error("WildcardImport")
         nullaway {
             knownInitializers.addAll(
