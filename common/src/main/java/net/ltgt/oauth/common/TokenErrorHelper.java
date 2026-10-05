@@ -44,7 +44,6 @@ public class TokenErrorHelper {
   public @Nullable Nonce getDPoPNonce() {
     return tokenFilterHelper.getDPoPNonce();
   }
-  ;
 
   @RestrictedApi(explanation = "Internal API", allowedOnPath = ".*/java/net/ltgt/oauth/.*")
   public List<TokenSchemeError> adaptError(String authenticationScheme, BearerTokenError error) {

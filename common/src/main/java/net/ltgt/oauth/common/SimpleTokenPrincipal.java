@@ -23,7 +23,7 @@ import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
 public class SimpleTokenPrincipal implements TokenPrincipal {
   public static final TokenPrincipalProvider PROVIDER = SimpleTokenPrincipal::new;
 
-  private TokenIntrospectionSuccessResponse tokenInfo;
+  private final TokenIntrospectionSuccessResponse tokenInfo;
 
   public SimpleTokenPrincipal(TokenIntrospectionSuccessResponse tokenInfo) {
     this.tokenInfo = requireNonNull(tokenInfo);

@@ -32,7 +32,6 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
 import com.nimbusds.oauth2.sdk.token.DPoPTokenError;
 import com.nimbusds.openid.connect.sdk.Nonce;
-import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -73,11 +72,6 @@ class Utils {
             requireNonNullElse(introspectionResponse.getTokenType(), AccessTokenType.DPOP))
         // introspection response must have cnf.jkt
         && introspectionResponse.getJWKThumbprintConfirmation() != null;
-  }
-
-  @FunctionalInterface
-  interface ErrorCallback<E extends Exception> {
-    void sendError(String message, @Nullable Throwable cause) throws E, IOException;
   }
 
   static class DPoPException extends Exception {

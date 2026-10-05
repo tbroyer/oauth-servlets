@@ -27,7 +27,7 @@ import java.util.Optional;
 public class KeycloakTokenPrincipal implements TokenPrincipal {
   public static final TokenPrincipalProvider PROVIDER = KeycloakTokenPrincipal::new;
 
-  private TokenIntrospectionSuccessResponse tokenInfo;
+  private final TokenIntrospectionSuccessResponse tokenInfo;
 
   public KeycloakTokenPrincipal(TokenIntrospectionSuccessResponse tokenInfo) {
     this.tokenInfo = requireNonNull(tokenInfo);
