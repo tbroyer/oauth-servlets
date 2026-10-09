@@ -1,18 +1,18 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
 errorprone = "2.50.0"
-jetty = "12.1.13"
+jetty = "12.1.14"
 junitJupiter = "6.1.3"
 nullaway = "0.14.2"
 
 # Versions used in build-logic
-googleJavaFormat = "1.36.1"
+googleJavaFormat = "1.37.0"
 ktlint = "1.8.0"
 
 [libraries]
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.3.0"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
-guava-testlib = "com.google.guava:guava-testlib:33.7.1-jre"
+guava-testlib = "com.google.guava:guava-testlib:33.7.2-jre"
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
 jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
 jakarta-servletApi = "jakarta.servlet:jakarta.servlet-api:6.0.0"
