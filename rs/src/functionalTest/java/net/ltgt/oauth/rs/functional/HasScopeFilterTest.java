@@ -53,11 +53,10 @@ public class HasScopeFilterTest {
 
   @RegisterExtension
   public WebServerExtension server =
-      new WebServerExtension(
-          dispatcher -> {
-            dispatcher.getProviderFactory().register(HasScopeFeature.class);
-            dispatcher.getRegistry().addPerRequestResource(TestResource.class);
-          });
+      new WebServerExtension(dispatcher -> {
+        dispatcher.getProviderFactory().register(HasScopeFeature.class);
+        dispatcher.getRegistry().addPerRequestResource(TestResource.class);
+      });
 
   @RegisterExtension public BearerTokenExtension client = new BearerTokenExtension();
 

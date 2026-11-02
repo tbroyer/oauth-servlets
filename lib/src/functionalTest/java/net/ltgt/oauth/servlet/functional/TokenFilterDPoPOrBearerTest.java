@@ -54,30 +54,27 @@ public class TokenFilterDPoPOrBearerTest {
 
   @RegisterExtension
   public WebServerExtension server =
-      new WebServerExtension(
-          contextHandler -> {
-            contextHandler.setAttribute(
-                TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
-                TokenTypeSupport.dpopOrBearer(
-                    ALGS,
-                    new CaffeineDPoPSingleUseChecker(),
-                    () -> List.of(CURRENT_NONCE, OLD_NONCE)));
-            contextHandler.addServlet(
-                new HttpServlet() {
-                  @Override
-                  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-                      throws ServletException, IOException {
-                    resp.getWriter()
-                        .print(
-                            Optional.ofNullable(req.getUserPrincipal())
-                                .filter(TokenPrincipal.class::isInstance)
-                                .map(TokenPrincipal.class::cast)
-                                .map(tokenPrincipal -> tokenPrincipal.getTokenInfo().getUsername())
-                                .orElse(null));
-                  }
-                },
-                "/");
-          });
+      new WebServerExtension(contextHandler -> {
+        contextHandler.setAttribute(
+            TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+            TokenTypeSupport.dpopOrBearer(
+                ALGS, new CaffeineDPoPSingleUseChecker(), () -> List.of(CURRENT_NONCE, OLD_NONCE)));
+        contextHandler.addServlet(
+            new HttpServlet() {
+              @Override
+              protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                  throws ServletException, IOException {
+                resp.getWriter()
+                    .print(
+                        Optional.ofNullable(req.getUserPrincipal())
+                            .filter(TokenPrincipal.class::isInstance)
+                            .map(TokenPrincipal.class::cast)
+                            .map(tokenPrincipal -> tokenPrincipal.getTokenInfo().getUsername())
+                            .orElse(null));
+              }
+            },
+            "/");
+      });
 
   private TokenSchemeError parseTokenError(String wwwAuthenticate) {
     try {

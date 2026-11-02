@@ -62,16 +62,15 @@ public class IsAuthenticatedFilterTest {
 
   @RegisterExtension
   public WebServerExtension server =
-      new WebServerExtension(
-          dispatcher -> {
-            dispatcher
-                .getProviderFactory()
-                .property(
-                    TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
-                    TokenTypeSupport.dpop(ALGS, null, () -> List.of(CURRENT_NONCE, OLD_NONCE)));
-            dispatcher.getProviderFactory().register(IsAuthenticatedFilter.class);
-            dispatcher.getRegistry().addPerRequestResource(TestResource.class);
-          });
+      new WebServerExtension(dispatcher -> {
+        dispatcher
+            .getProviderFactory()
+            .property(
+                TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+                TokenTypeSupport.dpop(ALGS, null, () -> List.of(CURRENT_NONCE, OLD_NONCE)));
+        dispatcher.getProviderFactory().register(IsAuthenticatedFilter.class);
+        dispatcher.getRegistry().addPerRequestResource(TestResource.class);
+      });
 
   @RegisterExtension public DPoPTokenExtension client = new DPoPTokenExtension(JWSAlgorithm.ES256);
 

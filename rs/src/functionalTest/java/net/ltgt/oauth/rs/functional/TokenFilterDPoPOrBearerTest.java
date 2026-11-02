@@ -69,18 +69,17 @@ public class TokenFilterDPoPOrBearerTest {
 
   @RegisterExtension
   public WebServerExtension server =
-      new WebServerExtension(
-          dispatcher -> {
-            dispatcher
-                .getProviderFactory()
-                .property(
-                    TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
-                    TokenTypeSupport.dpopOrBearer(
-                        ALGS,
-                        new CaffeineDPoPSingleUseChecker(),
-                        () -> List.of(CURRENT_NONCE, OLD_NONCE)));
-            dispatcher.getRegistry().addPerRequestResource(TestResource.class);
-          });
+      new WebServerExtension(dispatcher -> {
+        dispatcher
+            .getProviderFactory()
+            .property(
+                TokenTypeSupport.CONTEXT_ATTRIBUTE_NAME,
+                TokenTypeSupport.dpopOrBearer(
+                    ALGS,
+                    new CaffeineDPoPSingleUseChecker(),
+                    () -> List.of(CURRENT_NONCE, OLD_NONCE)));
+        dispatcher.getRegistry().addPerRequestResource(TestResource.class);
+      });
 
   private TokenSchemeError parseTokenError(String wwwAuthenticate) {
     try {

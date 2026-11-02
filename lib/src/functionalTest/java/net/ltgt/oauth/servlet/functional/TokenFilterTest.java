@@ -35,24 +35,23 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public class TokenFilterTest {
   @RegisterExtension
   public WebServerExtension server =
-      new WebServerExtension(
-          contextHandler -> {
-            contextHandler.addServlet(
-                new HttpServlet() {
-                  @Override
-                  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-                      throws ServletException, IOException {
-                    resp.getWriter()
-                        .print(
-                            Optional.ofNullable(req.getUserPrincipal())
-                                .filter(TokenPrincipal.class::isInstance)
-                                .map(TokenPrincipal.class::cast)
-                                .map(tokenPrincipal -> tokenPrincipal.getTokenInfo().getUsername())
-                                .orElse(null));
-                  }
-                },
-                "/");
-          });
+      new WebServerExtension(contextHandler -> {
+        contextHandler.addServlet(
+            new HttpServlet() {
+              @Override
+              protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                  throws ServletException, IOException {
+                resp.getWriter()
+                    .print(
+                        Optional.ofNullable(req.getUserPrincipal())
+                            .filter(TokenPrincipal.class::isInstance)
+                            .map(TokenPrincipal.class::cast)
+                            .map(tokenPrincipal -> tokenPrincipal.getTokenInfo().getUsername())
+                            .orElse(null));
+              }
+            },
+            "/");
+      });
 
   @RegisterExtension public BearerTokenExtension client = new BearerTokenExtension();
 

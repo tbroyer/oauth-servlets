@@ -50,10 +50,9 @@ public class TokenFilterTest {
 
   @RegisterExtension
   public WebServerExtension server =
-      new WebServerExtension(
-          dispatcher -> {
-            dispatcher.getRegistry().addPerRequestResource(TestResource.class);
-          });
+      new WebServerExtension(dispatcher -> {
+        dispatcher.getRegistry().addPerRequestResource(TestResource.class);
+      });
 
   @RegisterExtension public BearerTokenExtension client = new BearerTokenExtension();
 
