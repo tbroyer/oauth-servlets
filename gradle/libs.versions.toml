@@ -1,6 +1,6 @@
 # Try to maintain entries sorted alphabetically inside each "group".
 [versions]
-errorprone = "2.51.0"
+errorprone = "2.52.0"
 jetty = "12.1.14"
 junitJupiter = "6.1.3"
 nullaway = "0.14.3"
@@ -12,7 +12,7 @@ ktlint = "1.8.0"
 [libraries]
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.3.1"
 errorprone-annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
-guava-testlib = "com.google.guava:guava-testlib:33.7.2-jre"
+guava-testlib = "com.google.guava:guava-testlib:33.8.0-jre"
 jakarta-annotationApi = "jakarta.annotation:jakarta.annotation-api:2.1.1"
 jakarta-rsApi = "jakarta.ws.rs:jakarta.ws.rs-api:3.1.0"
 jakarta-servletApi = "jakarta.servlet:jakarta.servlet-api:6.0.0"
@@ -42,8 +42,8 @@ nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 errorprone = [ "errorprone-core", "nullaway" ]
 
 [plugins]
-errorprone = "net.ltgt.errorprone:5.1.1"
+errorprone = "net.ltgt.errorprone:5.2.0"
 jvmDependencyConflictResolution = "org.gradlex.jvm-dependency-conflict-resolution:2.5"
 nullaway = "net.ltgt.nullaway:3.3.0"
-spotless = "com.diffplug.spotless:8.10.4"
+spotless = "com.diffplug.spotless:8.11.0"
 vanniktechMavenPublish = "com.vanniktech.maven.publish:0.37.0"
