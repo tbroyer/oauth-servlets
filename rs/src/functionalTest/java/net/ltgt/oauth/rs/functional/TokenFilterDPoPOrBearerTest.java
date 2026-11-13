@@ -106,7 +106,7 @@ public class TokenFilterDPoPOrBearerTest {
 
   @Test
   public void noAuthentication() throws Exception {
-    var request = MockHttpRequest.get("/");
+    var request = MockHttpRequest.get("https://example.com/");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
@@ -118,7 +118,7 @@ public class TokenFilterDPoPOrBearerTest {
   @Test
   public void badAuthScheme() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(
                 HttpHeaders.AUTHORIZATION,
                 server.getClientAuthentication().toHTTPAuthorizationHeader());
@@ -132,7 +132,8 @@ public class TokenFilterDPoPOrBearerTest {
 
   @Test
   public void badAuthScheme2() throws Exception {
-    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpoptoken");
+    var request =
+        MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "dpoptoken");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
@@ -147,7 +148,8 @@ public class TokenFilterDPoPOrBearerTest {
 
     @Test
     public void missingToken() throws Exception {
-      var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearer");
+      var request =
+          MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "bearer");
       var response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus())
@@ -163,7 +165,8 @@ public class TokenFilterDPoPOrBearerTest {
 
     @Test
     public void missingToken2() throws Exception {
-      var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearer ");
+      var request =
+          MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "bearer ");
       var response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus())
@@ -179,7 +182,9 @@ public class TokenFilterDPoPOrBearerTest {
 
     @Test
     public void invalidToken() throws Exception {
-      var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearer invalid");
+      var request =
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, "bearer invalid");
       var response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus())
@@ -195,7 +200,7 @@ public class TokenFilterDPoPOrBearerTest {
     @Test
     public void validToken() throws Exception {
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
       var response = new MockHttpResponse();
       server.invoke(request, response);
@@ -208,7 +213,7 @@ public class TokenFilterDPoPOrBearerTest {
     @Test
     public void validTokenInSecondAuthorizationHeader() throws Exception {
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(
                   HttpHeaders.AUTHORIZATION,
                   server.getClientAuthentication().toHTTPAuthorizationHeader())
@@ -225,7 +230,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void revokedButCachedToken() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       var response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus()).isEqualTo(200);
@@ -236,7 +242,8 @@ public class TokenFilterDPoPOrBearerTest {
       client.revoke(token);
 
       request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus()).isEqualTo(200);
@@ -253,7 +260,8 @@ public class TokenFilterDPoPOrBearerTest {
 
     @Test
     public void missingToken() throws Exception {
-      var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpop");
+      var request =
+          MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "dpop");
       var response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus())
@@ -269,7 +277,8 @@ public class TokenFilterDPoPOrBearerTest {
 
     @Test
     public void missingToken2() throws Exception {
-      var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpop ");
+      var request =
+          MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "dpop ");
       var response = new MockHttpResponse();
       server.invoke(request, response);
       assertThat(response.getStatus())
@@ -285,7 +294,9 @@ public class TokenFilterDPoPOrBearerTest {
 
     @Test
     public void invalidToken() throws Exception {
-      var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "dpop invalid");
+      var request =
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, "dpop invalid");
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -310,7 +321,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void validToken() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -329,7 +341,7 @@ public class TokenFilterDPoPOrBearerTest {
     public void validTokenInSecondAuthorizationHeader() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(
                   HttpHeaders.AUTHORIZATION,
                   server.getClientAuthentication().toHTTPAuthorizationHeader())
@@ -352,7 +364,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void oldNonce() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -377,7 +390,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void invalidDPoPProof() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -399,7 +413,7 @@ public class TokenFilterDPoPOrBearerTest {
     @Test
     public void missingDPoPProof() throws Exception {
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
       var response = new MockHttpResponse();
       server.invoke(request, response);
@@ -418,7 +432,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void tooManyDPoPProofs() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -447,7 +462,7 @@ public class TokenFilterDPoPOrBearerTest {
     @Test
     public void malformedDPoPProof() throws Exception {
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
       request.header(TokenFilterHelper.DPOP_HEADER_NAME, "malformed");
       var response = new MockHttpResponse();
@@ -466,7 +481,7 @@ public class TokenFilterDPoPOrBearerTest {
     @Test
     public void dpopProofMissingAccessTokenHash() throws Exception {
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
@@ -491,7 +506,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void missingNonce() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -519,7 +535,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void badNonce() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -547,7 +564,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void invalidDPoPProofWithBadNonce() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -570,7 +588,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void replayedDPoPProof() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -602,7 +621,8 @@ public class TokenFilterDPoPOrBearerTest {
     public void revokedButCachedToken() throws Exception {
       var token = client.get();
       var request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -619,7 +639,8 @@ public class TokenFilterDPoPOrBearerTest {
       client.revoke(token);
 
       request =
-          MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+          MockHttpRequest.get("https://example.com/")
+              .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
       request.header(
           TokenFilterHelper.DPOP_HEADER_NAME,
           client
@@ -645,7 +666,7 @@ public class TokenFilterDPoPOrBearerTest {
     @Test
     public void validDPoPTokenUsedAsBearer() throws Exception {
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(
                   HttpHeaders.AUTHORIZATION,
                   new BearerAccessToken(dpopClient.get().getValue()).toAuthorizationHeader());
@@ -665,7 +686,7 @@ public class TokenFilterDPoPOrBearerTest {
     public void validBearerTokenUsedAsDPoP() throws Exception {
       var token = bearerClient.get();
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(
                   HttpHeaders.AUTHORIZATION,
                   new DPoPAccessToken(token.getValue()).toAuthorizationHeader());
@@ -690,7 +711,7 @@ public class TokenFilterDPoPOrBearerTest {
     public void validDPoPTokenUsedAsBothBearerAndDPoP() throws Exception {
       var token = dpopClient.get();
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader())
               .header(
                   HttpHeaders.AUTHORIZATION,
@@ -721,7 +742,7 @@ public class TokenFilterDPoPOrBearerTest {
     public void validBearerTokenUsedAsBothBearerAndDPoP() throws Exception {
       var token = bearerClient.get();
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader())
               .header(
                   HttpHeaders.AUTHORIZATION,
@@ -752,7 +773,7 @@ public class TokenFilterDPoPOrBearerTest {
     public void includingBothValidBearerAndValidDPoPTokens() throws Exception {
       var dpopToken = dpopClient.get();
       var request =
-          MockHttpRequest.get("/")
+          MockHttpRequest.get("https://example.com/")
               .header(HttpHeaders.AUTHORIZATION, bearerClient.get().toAuthorizationHeader())
               .header(HttpHeaders.AUTHORIZATION, dpopToken.toAuthorizationHeader());
       request.header(

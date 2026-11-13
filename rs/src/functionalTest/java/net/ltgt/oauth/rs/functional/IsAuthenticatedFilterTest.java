@@ -76,7 +76,7 @@ public class IsAuthenticatedFilterTest {
 
   @Test
   public void noAuthentication() throws Exception {
-    var request = MockHttpRequest.get("/");
+    var request = MockHttpRequest.get("https://example.com/");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(DPoPTokenError.MISSING_TOKEN.getHTTPStatusCode());
@@ -95,7 +95,8 @@ public class IsAuthenticatedFilterTest {
   public void validToken() throws Exception {
     var token = client.get();
     var request =
-        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+        MockHttpRequest.get("https://example.com/")
+            .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
     request.header(
         TokenFilterHelper.DPOP_HEADER_NAME,
         client

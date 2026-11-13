@@ -62,7 +62,7 @@ public class HasScopeFilterTest {
 
   @Test
   public void noAuthentication() throws Exception {
-    var request = MockHttpRequest.get("/");
+    var request = MockHttpRequest.get("https://example.com/");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(BearerTokenError.MISSING_TOKEN.getHTTPStatusCode());
@@ -75,7 +75,7 @@ public class HasScopeFilterTest {
   @Test
   public void insufficientScope() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(HttpHeaders.AUTHORIZATION, client.get("test2").toAuthorizationHeader());
     var response = new MockHttpResponse();
     server.invoke(request, response);
@@ -90,7 +90,7 @@ public class HasScopeFilterTest {
   @Test
   public void validToken() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(HttpHeaders.AUTHORIZATION, client.get("test1").toAuthorizationHeader());
     var response = new MockHttpResponse();
     server.invoke(request, response);
@@ -101,7 +101,7 @@ public class HasScopeFilterTest {
   @Test
   public void validToken2() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(
                 HttpHeaders.AUTHORIZATION, client.get("test1", "test2").toAuthorizationHeader());
     var response = new MockHttpResponse();
