@@ -58,7 +58,7 @@ public class TokenFilterTest {
 
   @Test
   public void noAuthentication() throws Exception {
-    var request = MockHttpRequest.get("/");
+    var request = MockHttpRequest.get("https://example.com/");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
@@ -70,7 +70,7 @@ public class TokenFilterTest {
   @Test
   public void badAuthScheme() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(
                 HttpHeaders.AUTHORIZATION,
                 server.getClientAuthentication().toHTTPAuthorizationHeader());
@@ -84,7 +84,9 @@ public class TokenFilterTest {
 
   @Test
   public void badAuthScheme2() throws Exception {
-    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearertoken");
+    var request =
+        MockHttpRequest.get("https://example.com/")
+            .header(HttpHeaders.AUTHORIZATION, "bearertoken");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
@@ -95,7 +97,8 @@ public class TokenFilterTest {
 
   @Test
   public void missingToken() throws Exception {
-    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearer");
+    var request =
+        MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "bearer");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus())
@@ -110,7 +113,8 @@ public class TokenFilterTest {
 
   @Test
   public void missingToken2() throws Exception {
-    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearer ");
+    var request =
+        MockHttpRequest.get("https://example.com/").header(HttpHeaders.AUTHORIZATION, "bearer ");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus())
@@ -125,7 +129,9 @@ public class TokenFilterTest {
 
   @Test
   public void invalidToken() throws Exception {
-    var request = MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, "bearer invalid");
+    var request =
+        MockHttpRequest.get("https://example.com/")
+            .header(HttpHeaders.AUTHORIZATION, "bearer invalid");
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(BearerTokenError.INVALID_TOKEN.getHTTPStatusCode());
@@ -140,7 +146,7 @@ public class TokenFilterTest {
   @Test
   public void validToken() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
     var response = new MockHttpResponse();
     server.invoke(request, response);
@@ -153,7 +159,7 @@ public class TokenFilterTest {
   @Test
   public void validTokenInSecondAuthorizationHeader() throws Exception {
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(
                 HttpHeaders.AUTHORIZATION,
                 server.getClientAuthentication().toHTTPAuthorizationHeader())
@@ -170,7 +176,8 @@ public class TokenFilterTest {
   public void revokedButCachedToken() throws Exception {
     var token = client.get();
     var request =
-        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+        MockHttpRequest.get("https://example.com/")
+            .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
     var response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);
@@ -181,7 +188,8 @@ public class TokenFilterTest {
     client.revoke(token);
 
     request =
-        MockHttpRequest.get("/").header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
+        MockHttpRequest.get("https://example.com/")
+            .header(HttpHeaders.AUTHORIZATION, token.toAuthorizationHeader());
     response = new MockHttpResponse();
     server.invoke(request, response);
     assertThat(response.getStatus()).isEqualTo(200);

@@ -118,7 +118,7 @@ public class TokenFilterSubclassTest {
     server.getRegistry().addPerRequestResource(TestResource.class);
 
     var request =
-        MockHttpRequest.get("/")
+        MockHttpRequest.get("https://example.com/")
             .header(HttpHeaders.AUTHORIZATION, client.get().toAuthorizationHeader());
     var response = new MockHttpResponse();
     server.invoke(request, response);
